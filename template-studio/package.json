@@ -1,5 +1,5 @@
 {
-	"name": "{{packageName}}",
+	"name": "<<packageName>>",
 	"version": "1.0.0",
 	"description": "Your new Harper app",
 	"type": "module",
