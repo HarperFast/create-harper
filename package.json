@@ -1,9 +1,11 @@
 {
 	"name": "create-harper",
-	"version": "8.2.0",
+	"version": "0.0.1",
 	"type": "module",
-	"license": "MIT",
-	"author": "Dawson Toth",
+	"author": {
+		"name": "HarperDB",
+		"email": "support@harperdb.io"
+	},
 	"bin": {
 		"create-harper": "index.js",
 		"cha": "index.js"
