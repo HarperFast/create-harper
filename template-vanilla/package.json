@@ -1,9 +1,8 @@
 {
-	"name": "application-template",
+	"name": "{{packageName}}",
 	"version": "1.0.0",
-	"description": "A template for building HarperDB applications",
+	"description": "Your new Harper app",
 	"type": "module",
-	"license": "Apache-2.0",
 	"scripts": {
 		"start": "harperdb run .",
 		"dev": "harperdb dev .",

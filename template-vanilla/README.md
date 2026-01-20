@@ -1,6 +1,4 @@
-# Your New Harper Fabric App
-
-This is a template for building [Harper](https://www.harper.fast/) applications. You can download this repository as a starting point for building applications with Harper.
+# {{projectName}}
 
 ## Installation
 
@@ -13,6 +11,7 @@ npm install -g harperdb
 ## Development
 
 Then you can start your app:
+
 ```sh
 npm run dev
 ```
@@ -26,7 +25,7 @@ curl http://localhost:9926/Greeting
 You should see the following:
 
 ```json
-{"greeting":"Hello, world!"}
+{ "greeting": "Hello, world!" }
 ```
 
 Navigate to [http://localhost:9926](http://localhost:9926) in a browser and view the functional web application.
@@ -40,7 +39,6 @@ Take a look at the [default configuration](./config.yaml), which specifies how f
 The [schema.graphql](./schema.graphql) is the table schema definition. This is the main starting point for defining your database schema, specifying which tables you want and what attributes/fields they should have.
 
 The [resources.js](./resources.js) provides a template for defining JavaScript resource classes, for customized application logic in your endpoints.
-
 
 ## Deployment
 
