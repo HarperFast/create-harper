@@ -1,7 +1,8 @@
+- Make sure harper CLI is installed and configured
 - When creating the app, do we have steps that set up your .env for you? So you can deploy smoothly...
 - Sockets? Or does that layer on top of all the others as another variant / addition we can make?
+- Renovate
 - Publish pipeline
   - create-harper
   - create-harperdb
   - @harperfast/create
-- Make sure harper CLI is installed and configured
