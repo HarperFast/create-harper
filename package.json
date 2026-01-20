@@ -1,0 +1,44 @@
+{
+	"name": "create-harper",
+	"version": "8.2.0",
+	"type": "module",
+	"license": "MIT",
+	"author": "Dawson Toth",
+	"bin": {
+		"create-harper": "index.js",
+		"cha": "index.js"
+	},
+	"files": [
+		"index.js",
+		"template-*"
+	],
+	"scripts": {
+		"lint": "oxlint .",
+		"lint:fix": "oxlint . --fix",
+		"format": "dprint check",
+		"format:fix": "dprint fmt",
+		"format:staged": "dprint check --staged",
+		"test": "vitest"
+	},
+	"engines": {
+		"node": "^20.19.0 || >=22.12.0"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/harperfast/create-harper.git"
+	},
+	"bugs": {
+		"url": "https://github.com/harperfast/create-harper/issues"
+	},
+	"homepage": "https://github.com/harperfast",
+	"devDependencies": {
+		"@clack/prompts": "^1.0.0-alpha.9",
+		"@vercel/detect-agent": "^1.0.0",
+		"cross-spawn": "^7.0.6",
+		"dprint": "^0.51.1",
+		"mri": "^1.2.0",
+		"oxlint": "^1.38.0",
+		"picocolors": "^1.1.1",
+		"vitest": "^4.0.17"
+	}
+}
