@@ -172,23 +172,25 @@ async function init() {
 			});
 			if (prompts.isCancel(framework)) { return cancel(); }
 
-			const variant = await prompts.select({
-				message: 'Select a variant:',
-				options: framework.variants.map((variant) => {
-					const variantColor = variant.color;
-					const command = variant.customCommand
-						? getFullCustomCommand(variant.customCommand, pkgInfo).replace(
-							/ TARGET_DIR$/,
-							'',
-						)
-						: undefined;
-					return {
-						label: variantColor(variant.display || variant.name),
-						value: variant.name,
-						hint: command,
-					};
-				}),
-			});
+			const variant = framework.variants.length === 1
+				? framework.variants[0].name
+				: await prompts.select({
+					message: 'Select a variant:',
+					options: framework.variants.map((variant) => {
+						const variantColor = variant.color;
+						const command = variant.customCommand
+							? getFullCustomCommand(variant.customCommand, pkgInfo).replace(
+								/ TARGET_DIR$/,
+								'',
+							)
+							: undefined;
+						return {
+							label: variantColor(variant.display || variant.name),
+							value: variant.name,
+							hint: command,
+						};
+					}),
+				});
 			if (prompts.isCancel(variant)) { return cancel(); }
 
 			template = variant;
