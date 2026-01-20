@@ -162,13 +162,15 @@ async function init() {
 				message: hasInvalidArgTemplate
 					? `"${argTemplate}" isn't a valid template. Please choose from below: `
 					: 'Select a framework:',
-				options: FRAMEWORKS.map((framework) => {
-					const frameworkColor = framework.color;
-					return {
-						label: frameworkColor(framework.display || framework.name),
-						value: framework,
-					};
-				}),
+				options: FRAMEWORKS
+					.filter(framework => !framework.hidden)
+					.map((framework) => {
+						const frameworkColor = framework.color;
+						return {
+							label: frameworkColor(framework.display || framework.name),
+							value: framework,
+						};
+					}),
 			});
 			if (prompts.isCancel(framework)) { return cancel(); }
 
