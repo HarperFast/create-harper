@@ -1,14 +1,16 @@
 {
-	"name": "vite-starter",
-	"private": true,
-	"version": "0.0.0",
+	"name": "application-template",
+	"version": "1.0.0",
+	"description": "A template for building HarperDB applications",
 	"type": "module",
+	"license": "Apache-2.0",
 	"scripts": {
-		"dev": "vite",
-		"build": "vite build",
-		"preview": "vite preview"
+		"start": "harperdb run .",
+		"dev": "harperdb dev .",
+		"login": "node login.js",
+		"deploy": "npx -y dotenv-cli -- harperdb deploy . restart=rolling replicated=true"
 	},
 	"devDependencies": {
-		"vite": "^7.3.1"
+		"harperdb": "^4.7.15"
 	}
 }

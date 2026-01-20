@@ -9,6 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { defaultTargetDir } from './lib/constants/defaultTargetDir.js';
 import { FRAMEWORKS } from './lib/constants/frameworks.js';
 import { helpMessage } from './lib/constants/helpMessage.js';
+import { renameFiles } from './lib/constants/renameFiles.js';
 import { TEMPLATES } from './lib/constants/templates.js';
 import { copy } from './lib/fs/copy.js';
 import { emptyDir } from './lib/fs/emptyDir.js';
@@ -24,15 +25,11 @@ import { toValidPackageName } from './lib/pkg/toValidPackageName.js';
 import { start } from './lib/start.js';
 
 const argv = mri(process.argv.slice(2), {
-	boolean: ['help', 'overwrite', 'immediate', 'rolldown', 'interactive'],
+	boolean: ['help', 'overwrite', 'immediate', 'interactive'],
 	alias: { h: 'help', t: 'template', i: 'immediate' },
 	string: ['template'],
 });
 const cwd = process.cwd();
-
-const renameFiles = {
-	_gitignore: '.gitignore',
-};
 
 init().catch((e) => {
 	console.error(e);
@@ -232,7 +229,7 @@ async function init() {
 		}
 	}
 
-	// Only create directory for built-in templates, not for customCommand
+	// Only create a directory for built-in templates, not for customCommand
 	fs.mkdirSync(root, { recursive: true });
 	prompts.log.step(`Scaffolding project in ${root}...`);
 
