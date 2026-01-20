@@ -1,16 +1,45 @@
-# React + Vite
+# {{projectName}}
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Installation
 
-Currently, two official plugins are available:
+To get started, make sure you have [installed Harper](https://docs.harperdb.io/docs/deployments/install-harper), which can be done quickly:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+```sh
+npm install -g harperdb
+```
 
-## React Compiler
+## Development
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Then you can start your app:
 
-## Expanding the ESLint configuration
+```sh
+npm run dev
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Navigate to [http://localhost:9926](http://localhost:9926) in a browser and view the functional web application.
+
+For more information about getting started with HarperDB and building applications, see our [getting started guide](https://docs.harperdb.io/docs).
+
+For more information on Harper Components, see the [Components documentation](https://docs.harperdb.io/docs/reference/components).
+
+Take a look at the [default configuration](./config.yaml), which specifies how files are handled in your application.
+
+The [schema.graphql](./schema.graphql) is the table schema definition. This is the main starting point for defining your database schema, specifying which tables you want and what attributes/fields they should have.
+
+The [resources.js](resources.ts) provides a template for defining JavaScript resource classes, for customized application logic in your endpoints.
+
+## Deployment
+
+When you are ready, head to [https://fabric.harper.fast/](https://fabric.harper.fast/), log in to your account, and create a cluster.
+
+Set up your .env file with your secure cluster credentials. Don't commit this file to source control!
+
+```sh
+npm run login
+```
+
+Then you can deploy your app to your cluster:
+
+```sh
+npm run deploy
+```
