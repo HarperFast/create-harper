@@ -1,6 +1,5 @@
 - React (with vite plugin)
 - React-TS (with vite plugin)
-- Vanilla-TS (application-template)
 - Do I have hidden variants for Fabric? Or some flag that like, removes certain files?
 - When creating the app, do we have steps that set up your .env for you? So you can deploy smoothly...
 - Sockets? Or does that layer on top of all the others as another variant / addition we can make?

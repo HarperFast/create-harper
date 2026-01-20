@@ -1,4 +1,4 @@
-import {Resource} from 'harperdb';
+import { Resource } from 'harperdb';
 
 /** Here we can define any JavaScript-based resources and extensions to tables
 import {tables} from 'harperdb';

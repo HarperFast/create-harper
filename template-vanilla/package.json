@@ -6,7 +6,6 @@
 	"scripts": {
 		"start": "harperdb run .",
 		"dev": "harperdb dev .",
-		"login": "node login.js",
 		"deploy": "npx -y dotenv-cli -- harperdb deploy . restart=rolling replicated=true"
 	},
 	"devDependencies": {

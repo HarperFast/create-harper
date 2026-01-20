@@ -1,15 +1,14 @@
 {
-	"name": "vite-typescript-starter",
-	"private": true,
-	"version": "0.0.0",
+	"name": "{{packageName}}",
+	"version": "1.0.0",
+	"description": "Your new Harper app",
 	"type": "module",
 	"scripts": {
-		"dev": "vite",
-		"build": "tsc && vite build",
-		"preview": "vite preview"
+		"start": "harperdb run .",
+		"dev": "harperdb dev .",
+		"deploy": "npx -y dotenv-cli -- harperdb deploy . restart=rolling replicated=true"
 	},
 	"devDependencies": {
-		"typescript": "~5.9.3",
-		"vite": "^7.3.1"
+		"harperdb": "^4.7.15"
 	}
 }

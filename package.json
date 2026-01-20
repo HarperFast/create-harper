@@ -32,16 +32,17 @@
 	},
 	"homepage": "https://github.com/harperfast",
 	"dependencies": {
-	},
-	"devDependencies": {
 		"@clack/prompts": "^1.0.0-alpha.9",
 		"@vercel/detect-agent": "^1.0.0",
 		"cross-spawn": "^7.0.6",
-		"dprint": "^0.51.1",
 		"lodash": "^4.17.21",
 		"mri": "^1.2.0",
+		"picocolors": "^1.1.1"
+	},
+	"devDependencies": {
+		"dprint": "^0.51.1",
+		"harperdb": "^4.7.15",
 		"oxlint": "^1.38.0",
-		"picocolors": "^1.1.1",
 		"vitest": "^4.0.17"
 	}
 }
