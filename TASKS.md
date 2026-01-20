@@ -1,5 +1,3 @@
-- Shared files that all apps should have (template-shared?)
-- Ability to template everything
 - React (with vite plugin)
 - React-TS (with vite plugin)
 - Vanilla (application-template)

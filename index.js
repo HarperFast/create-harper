@@ -9,9 +9,8 @@ import { fileURLToPath } from 'node:url';
 import { defaultTargetDir } from './lib/constants/defaultTargetDir.js';
 import { FRAMEWORKS } from './lib/constants/frameworks.js';
 import { helpMessage } from './lib/constants/helpMessage.js';
-import { renameFiles } from './lib/constants/renameFiles.js';
 import { TEMPLATES } from './lib/constants/templates.js';
-import { copy } from './lib/fs/copy.js';
+import { crawlTemplateDir } from './lib/fs/crawlTemplateDir.js';
 import { emptyDir } from './lib/fs/emptyDir.js';
 import { formatTargetDir } from './lib/fs/formatTargetDir.js';
 import { isEmpty } from './lib/fs/isEmpty.js';
@@ -65,9 +64,10 @@ async function init() {
 
 	// 1. Get project name and target dir
 	let targetDir = argTargetDir;
+	let projectName = targetDir;
 	if (!targetDir) {
 		if (interactive) {
-			const projectName = await prompts.text({
+			projectName = await prompts.text({
 				message: 'Project name:',
 				defaultValue: defaultTargetDir,
 				placeholder: defaultTargetDir,
@@ -233,41 +233,16 @@ async function init() {
 	fs.mkdirSync(root, { recursive: true });
 	prompts.log.step(`Scaffolding project in ${root}...`);
 
-	const templateDir = path.resolve(
-		fileURLToPath(import.meta.url),
-		'..',
-		`template-${template}`,
-	);
-
-	const write = (file, content) => {
-		const targetPath = path.join(root, renameFiles[file] ?? file);
-		if (content) {
-			fs.writeFileSync(targetPath, content);
-		} else if (file === 'index.html') {
-			const templatePath = path.join(templateDir, file);
-			const templateContent = fs.readFileSync(templatePath, 'utf-8');
-			const updatedContent = templateContent.replace(
-				/<title>.*?<\/title>/,
-				`<title>${packageName}</title>`,
-			);
-			fs.writeFileSync(targetPath, updatedContent);
-		} else {
-			copy(path.join(templateDir, file), targetPath);
-		}
+	const context = {
+		projectName,
+		packageName,
 	};
 
-	const files = fs.readdirSync(templateDir);
-	for (const file of files.filter((f) => f !== 'package.json')) {
-		write(file);
-	}
+	const templateSharedDir = path.resolve(fileURLToPath(import.meta.url), '..', `template-shared`);
+	crawlTemplateDir(root, templateSharedDir, context);
 
-	const pkg = JSON.parse(
-		fs.readFileSync(path.join(templateDir, `package.json`), 'utf-8'),
-	);
-
-	pkg.name = packageName;
-
-	write('package.json', JSON.stringify(pkg, null, 2) + '\n');
+	const templateDir = path.resolve(fileURLToPath(import.meta.url), '..', `template-${template}`);
+	crawlTemplateDir(root, templateDir, context);
 
 	if (immediate) {
 		install(root, pkgManager);
