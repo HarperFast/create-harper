@@ -3,7 +3,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
-import { TEMPLATES } from '../lib/constants/templates.js';
+import { templates } from '../lib/constants/templates.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, '..');
@@ -24,7 +24,7 @@ describe('Integration tests', () => {
 		}
 	});
 
-	for (const template of TEMPLATES) {
+	for (const template of templates) {
 		test(`generates ${template} template`, () => {
 			const projectName = `test-${template}`;
 			const targetDir = path.resolve(tempDir, projectName);
