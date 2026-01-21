@@ -1,12 +1,12 @@
 import { type RequestTargetOrId, tables } from 'harperdb';
 
-interface TableNameRecord {
+export interface TableNameRecord {
 	id: string;
 	name: string;
 	tag: string;
 }
 
-export class TableName extends tables.TableName<TableNameRecord> {
+export class ExampleTable extends tables.ExampleTable<TableNameRecord> {
 	// we can define our own custom POST handler
 	async post(target: RequestTargetOrId, newRecord: Omit<TableNameRecord, 'id'>) {
 		// do something with the incoming content;
