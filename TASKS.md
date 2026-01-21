@@ -1,4 +1,3 @@
-- When creating the app, do we have steps that set up your .env for you? So you can deploy smoothly...
 - Sockets? Or does that layer on top of all the others as another variant / addition we can make?
 - Make sure harper CLI is installed and configured
 - Port to TypeScript? With type stripping?
@@ -6,3 +5,4 @@
   - create-harper
   - create-harperdb?
   - @harperfast/create?
+- Anything we can do to enforce @latest when running this?
