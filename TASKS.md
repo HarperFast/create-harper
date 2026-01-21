@@ -1,4 +1,3 @@
-- Sockets? Or does that layer on top of all the others as another variant / addition we can make?
 - Make sure harper CLI is installed and configured
 - Publish pipeline with trusted publisher
   - create-harper
