@@ -3,4 +3,3 @@
   - create-harper
   - create-harperdb?
   - @harperfast/create?
-- Anything we can do to enforce @latest when running this?

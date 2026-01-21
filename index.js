@@ -4,6 +4,7 @@ import mri from 'mri';
 import { helpMessage } from './lib/constants/helpMessage.js';
 import { formatTargetDir } from './lib/fs/formatTargetDir.js';
 import { pkgFromUserAgent } from './lib/pkg/pkgFromUserAgent.js';
+import { checkForUpdate } from './lib/steps/checkForUpdate.js';
 import { getEnvVars } from './lib/steps/getEnvVars.js';
 import { getExamples } from './lib/steps/getExamples.js';
 import { getImmediate } from './lib/steps/getImmediate.js';
@@ -35,6 +36,13 @@ async function init() {
 	const help = argv.help;
 	if (help) {
 		console.log(helpMessage);
+		return;
+	}
+
+	const currentVersion = await checkForUpdate();
+	const version = argv.version;
+	if (version) {
+		console.log(`Current version: ${currentVersion}`);
 		return;
 	}
 

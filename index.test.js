@@ -22,6 +22,7 @@ vi.mock('./lib/steps/getTemplate.js');
 vi.mock('./lib/steps/getExamples.js');
 vi.mock('./lib/steps/getImmediate.js');
 vi.mock('./lib/steps/getEnvVars.js');
+vi.mock('./lib/steps/checkForUpdate.js');
 vi.mock('./lib/steps/scaffoldProject.js');
 vi.mock('./lib/steps/showOutro.js');
 
