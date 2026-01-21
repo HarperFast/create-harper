@@ -9,7 +9,7 @@
 		"lint": "echo 'No lint implemented yet'",
 		"build": "vite build",
 		"preview": "vite preview",
-		"deploy": "npx -y dotenv-cli -- harperdb deploy . restart=rolling replicated=true"
+		"build-and-deploy": "npm run build && mkdir deploy && mv web deploy/ && cp -R deploy-template/* deploy/ && (cd deploy && npx -y dotenv-cli -- harperdb deploy . restart=rolling replicated=true)"
 	},
 	"devDependencies": {
 		"@harperfast/vite-plugin": "^0.0.1",

@@ -29,12 +29,5 @@ jobs:
         run: npm test
       - name: Run lint
         run: npm run lint
-      - name: Build
-        run: npm run build
-      - name: Deploy
-        run: |
-          mkdir deploy
-          mv web deploy/
-          cp -R deploy-template/* deploy/
-          cd deploy
-          CLI_TARGET_USERNAME=${{ secrets.CLI_TARGET_USERNAME }} CLI_TARGET_PASSWORD='${{ secrets.CLI_TARGET_PASSWORD }}' harperdb deploy_component project='${{ secrets.CLI_DEPLOY_TARGET_NAME }}' target='${{ secrets.CLI_DEPLOY_TARGET_URL }}' restart=false replicated=true
+      - name: Build & deploy
+        run: npm run build-and-deploy
