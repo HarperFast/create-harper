@@ -19,6 +19,7 @@ vi.mock('./lib/steps/getProjectName.js');
 vi.mock('./lib/steps/handleExistingDir.js');
 vi.mock('./lib/steps/getPackageName.js');
 vi.mock('./lib/steps/getTemplate.js');
+vi.mock('./lib/steps/getExamples.js');
 vi.mock('./lib/steps/getImmediate.js');
 vi.mock('./lib/steps/getEnvVars.js');
 vi.mock('./lib/steps/scaffoldProject.js');
@@ -28,6 +29,7 @@ describe('index.js', () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
 		vi.spyOn(console, 'log').mockImplementation(() => {});
+		vi.spyOn(console, 'error').mockImplementation(() => {});
 	});
 
 	test('shows help message and exits', async () => {
@@ -54,6 +56,7 @@ describe('index.js', () => {
 		const { handleExistingDir } = await import('./lib/steps/handleExistingDir.js');
 		const { getPackageName } = await import('./lib/steps/getPackageName.js');
 		const { getTemplate } = await import('./lib/steps/getTemplate.js');
+		const { getExamples } = await import('./lib/steps/getExamples.js');
 		const { getImmediate } = await import('./lib/steps/getImmediate.js');
 		const { getEnvVars } = await import('./lib/steps/getEnvVars.js');
 		const { scaffoldProject } = await import('./lib/steps/scaffoldProject.js');
@@ -63,6 +66,7 @@ describe('index.js', () => {
 		vi.mocked(handleExistingDir).mockResolvedValue({ cancelled: false });
 		vi.mocked(getPackageName).mockResolvedValue({ packageName: 'my-pkg', cancelled: false });
 		vi.mocked(getTemplate).mockResolvedValue({ template: 'vanilla', cancelled: false });
+		vi.mocked(getExamples).mockResolvedValue({ excludedFiles: ['ex1'], cancelled: false });
 		vi.mocked(getImmediate).mockResolvedValue({ immediate: true, cancelled: false });
 		vi.mocked(getEnvVars).mockResolvedValue({
 			envVars: { username: 'u', target: 't', password: 'p' },
@@ -72,11 +76,15 @@ describe('index.js', () => {
 
 		await import('./index.js?full-flow');
 
+		await vi.waitFor(() => {
+			expect(showOutro).toHaveBeenCalled();
+		});
+
 		expect(scaffoldProject).toHaveBeenCalledWith('my-dir', 'my-project', 'my-pkg', 'vanilla', {
 			username: 'u',
 			target: 't',
 			password: 'p',
-		});
+		}, ['ex1']);
 		expect(showOutro).toHaveBeenCalledWith('/root', expect.any(String), true);
 	});
 
@@ -88,17 +96,21 @@ describe('index.js', () => {
 			interactive: true,
 		});
 		await import('./index.js?agent-interactive');
-		expect(console.log).toHaveBeenCalledWith(expect.stringContaining('To create in one go, run:'));
+		await vi.waitFor(() => {
+			expect(console.log).toHaveBeenCalledWith(expect.stringContaining('To create in one go, run:'));
+		});
 	});
 
 	test('logs error if init fails', async () => {
-		vi.spyOn(console, 'error').mockImplementation(() => {});
 		const { getProjectName } = await import('./lib/steps/getProjectName.js');
 		vi.mocked(getProjectName).mockRejectedValue(new Error('init failed'));
 		vi.mocked(mri).mockReturnValue({
 			_: [],
 		});
 		await import('./index.js?init-fail');
+		await vi.waitFor(() => {
+			expect(console.error).toHaveBeenCalled();
+		});
 		expect(console.error).toHaveBeenCalledWith(expect.any(Error));
 	});
 
@@ -109,6 +121,9 @@ describe('index.js', () => {
 		const prompts = await import('@clack/prompts');
 
 		await import('./index.js?cancel');
+		await vi.waitFor(() => {
+			expect(prompts.cancel).toHaveBeenCalled();
+		});
 		expect(prompts.cancel).toHaveBeenCalled();
 	});
 });
