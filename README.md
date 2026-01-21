@@ -60,22 +60,8 @@ Currently supported template presets include:
 
 - `vanilla`
 - `vanilla-ts`
-- `vue`
-- `vue-ts`
 - `react`
 - `react-ts`
-- `react-swc`
-- `react-swc-ts`
-- `preact`
-- `preact-ts`
-- `lit`
-- `lit-ts`
-- `svelte`
-- `svelte-ts`
-- `solid`
-- `solid-ts`
-- `qwik`
-- `qwik-ts`
 
 You can use `.` for the project name to scaffold in the current directory.
 
