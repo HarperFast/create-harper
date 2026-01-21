@@ -41,19 +41,19 @@ You can also directly specify the project name and the template you want to use 
 
 ```bash
 # npm 7+, extra double-dash is needed:
-npm create harper@latest my-vue-app -- --template vue
+npm create harper@latest my-react-app -- --template react-ts
 
 # yarn
-yarn create harper my-vue-app --template vue
+yarn create harper my-react-app --template react-ts
 
 # pnpm
-pnpm create harper my-vue-app --template vue
+pnpm create harper my-react-app --template react-ts
 
 # Bun
-bun create harper my-vue-app --template vue
+bun create harper my-react-app --template react-ts
 
 # Deno
-deno init --npm harper my-vue-app --template vue
+deno init --npm harper my-react-app --template react-ts
 ```
 
 Currently supported template presets include:
