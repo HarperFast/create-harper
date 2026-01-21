@@ -13,6 +13,7 @@
 	"files": [
 		"index.js",
 		"lib/",
+		"!lib/**/*.test.js",
 		"template-barebones/",
 		"template-react/",
 		"template-react-ts/",
@@ -22,12 +23,15 @@
 		"template-vanilla-ts/"
 	],
 	"scripts": {
-		"lint": "oxlint .",
-		"lint:fix": "oxlint . --fix",
-		"format": "dprint check",
+		"commitlint": "commitlint --edit",
+		"format:check": "dprint check",
 		"format:fix": "dprint fmt",
 		"format:staged": "dprint check --staged",
-		"test": "vitest"
+		"lint:check": "oxlint .",
+		"lint:fix": "oxlint . --fix",
+		"test:run": "vitest run",
+		"test:watch": "vitest",
+		"test:coverage": "vitest run --coverage"
 	},
 	"engines": {
 		"node": "^20.19.0 || >=22.12.0"
@@ -48,6 +52,9 @@
 		"picocolors": "^1.1.1"
 	},
 	"devDependencies": {
+		"@commitlint/cli": "^20.0.0",
+		"@commitlint/config-conventional": "^20.0.0",
+		"@vitest/coverage-v8": "^4.0.17",
 		"dprint": "^0.51.1",
 		"harperdb": "^4.7.15",
 		"oxlint": "^1.38.0",

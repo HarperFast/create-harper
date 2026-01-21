@@ -1,9 +1,7 @@
 - Make sure harper CLI is installed and configured
 - When creating the app, do we have steps that set up your .env for you? So you can deploy smoothly...
 - Sockets? Or does that layer on top of all the others as another variant / addition we can make?
-- Renovate
 - Port to TypeScript? With type stripping?
-- Unit tests
 - Publish pipeline with trusted publisher
   - create-harper
   - create-harperdb?

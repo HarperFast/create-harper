@@ -1,0 +1,29 @@
+{
+	"$schema": "https://docs.renovatebot.com/renovate-schema.json",
+	"extends": [
+		"config:recommended"
+	],
+	"semanticCommits": "enabled",
+	"minimumReleaseAge": "3 days",
+	"internalChecksFilter": "strict",
+	"lockFileMaintenance": {
+		"enabled": true,
+		"automerge": true
+	},
+	"packageRules": [
+		{
+			"matchDepTypes": [
+				"action"
+			],
+			"pinDigests": true
+		},
+		{
+			"matchUpdateTypes": [
+				"minor",
+				"patch"
+			],
+			"matchCurrentVersion": "!/^0/",
+			"automerge": true
+		}
+	]
+}
