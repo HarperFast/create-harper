@@ -8,7 +8,8 @@
 		"test": "echo 'No tests implemented yet'",
 		"lint": "echo 'No lint implemented yet'",
 		"build": "tsc -b && vite build",
-		"preview": "vite preview"
+		"preview": "vite preview",
+		"deploy": "npx -y dotenv-cli -- harperdb deploy . restart=rolling replicated=true"
 	},
 	"devDependencies": {
 		"@harperfast/vite-plugin": "^0.0.1",
