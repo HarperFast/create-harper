@@ -237,13 +237,13 @@ async function init() {
 	fs.mkdirSync(root, { recursive: true });
 	prompts.log.step(`Scaffolding project in ${root}...`);
 
-	const context = {
-		projectName,
-		packageName,
+	const substitutions = {
+		'your-project-name-here': projectName,
+		'your-package-name-here': packageName,
 	};
 
 	const templateDir = path.resolve(fileURLToPath(import.meta.url), '..', `template-${template}`);
-	crawlTemplateDir(root, templateDir, context);
+	crawlTemplateDir(root, templateDir, substitutions);
 
 	if (immediate) {
 		install(root, pkgManager);

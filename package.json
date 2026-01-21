@@ -1,6 +1,6 @@
 {
 	"name": "create-harper",
-	"version": "0.0.2",
+	"version": "0.0.3",
 	"type": "module",
 	"author": {
 		"name": "HarperDB",
@@ -44,7 +44,6 @@
 		"@clack/prompts": "^1.0.0-alpha.9",
 		"@vercel/detect-agent": "^1.0.0",
 		"cross-spawn": "^7.0.6",
-		"lodash": "^4.17.21",
 		"mri": "^1.2.0",
 		"picocolors": "^1.1.1"
 	},

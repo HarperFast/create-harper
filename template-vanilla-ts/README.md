@@ -1,4 +1,4 @@
-# <<projectName>>
+# your-project-name-here
 
 ## Installation
 

@@ -1,4 +1,4 @@
-# <<projectName>>
+# your-project-name-here
 
 Your new app is now deployed and running on Harper Fabric!
 
