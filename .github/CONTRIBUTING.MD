@@ -45,8 +45,8 @@ Useful types include: feat, fix, perf, refactor, chore, docs, style, test, build
 ## Testing
 
 - Framework: Vitest (see `vitest.config.ts`)
-- Run once: `npm run test:run`
-- Watch mode: `npm run test:watch`
+- Run once: `npm test`
+- Watch mode: `npm test:watch`
 
 Where practical, add or update unit tests for your changes.
 
@@ -59,7 +59,7 @@ Where practical, add or update unit tests for your changes.
 
 - Create feature branches from the main development branch.
 - Keep PRs focused and reasonably small.
-- Ensure `npm run test:run` and `npm run lint:check` and `npm run format:check` pass before requesting review.
+- Ensure `npm test` and `npm run lint:check` and `npm run format:check` pass before requesting review.
 - Use descriptive PR titles that align with Conventional Commits when possible.
 
 Releases are automated from the `main` branch via semantic-release.
