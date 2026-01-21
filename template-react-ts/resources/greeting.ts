@@ -1,28 +1,5 @@
 import { type RecordObject, type RequestTargetOrId, Resource } from 'harperdb';
 
-/** Here we can define any JavaScript-based resources and extensions to tables
-import { tables, type RequestTarget } from 'harperdb';
-
-interface TableNameRecord {
-	id: string;
-	name: string;
-	tag: string;
-}
-
-export class TableName extends tables.TableName<TableNameRecord> {
-	// we can define our own custom POST handler
-	async post(target: RequestTargetOrId, newRecord: Omit<TableNameRecord, 'id'>) {
-		// do something with the incoming content;
-		return super.post(target, newRecord);
-	}
-	// or custom GET handler
-	async get(target: RequestTarget): Promise<TableNameRecord> {
-		// we can modify this resource before returning
-		return super.get(target);
-	}
-}
-*/
-
 interface GreetingRecord {
 	greeting: string;
 }

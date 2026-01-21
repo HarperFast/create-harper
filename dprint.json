@@ -17,8 +17,7 @@
 		"useTabs": true
 	},
 	"excludes": [
-		"**/node_modules",
-		"template-barebones/schema.graphql"
+		"**/node_modules"
 	],
 	"plugins": [
 		"https://plugins.dprint.dev/typescript-0.95.13.wasm",

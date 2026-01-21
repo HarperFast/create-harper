@@ -1,3 +1,0 @@
-CLI_TARGET_USERNAME='your-cluster-username-here'
-CLI_TARGET_PASSWORD='your-cluster-password-here'
-CLI_TARGET='your-fabric.harper.fast-cluster-url-here'

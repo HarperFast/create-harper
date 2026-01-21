@@ -36,9 +36,9 @@ For more information on Harper Components, see the [Components documentation](ht
 
 Take a look at the [default configuration](./config.yaml), which specifies how files are handled in your application.
 
-The [schema.graphql](./schema.graphql) is the table schema definition. This is the main starting point for defining your database schema, specifying which tables you want and what attributes/fields they should have.
+The [schema.graphql](schemas/exampleTable.graphql) is the table schema definition. This is the main starting point for defining your database schema, specifying which tables you want and what attributes/fields they should have.
 
-The [resources.js](resources.ts) provides a template for defining JavaScript resource classes, for customized application logic in your endpoints.
+The [resources.js](resources/greeting.ts) provides a template for defining JavaScript resource classes, for customized application logic in your endpoints.
 
 ## Deployment
 
