@@ -242,9 +242,6 @@ async function init() {
 		packageName,
 	};
 
-	const templateSharedDir = path.resolve(fileURLToPath(import.meta.url), '..', `template-shared`);
-	crawlTemplateDir(root, templateSharedDir, context);
-
 	const templateDir = path.resolve(fileURLToPath(import.meta.url), '..', `template-${template}`);
 	crawlTemplateDir(root, templateDir, context);
 
