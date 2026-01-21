@@ -20,6 +20,7 @@ vi.mock('./lib/steps/handleExistingDir.js');
 vi.mock('./lib/steps/getPackageName.js');
 vi.mock('./lib/steps/getTemplate.js');
 vi.mock('./lib/steps/getImmediate.js');
+vi.mock('./lib/steps/getEnvVars.js');
 vi.mock('./lib/steps/scaffoldProject.js');
 vi.mock('./lib/steps/showOutro.js');
 
@@ -54,6 +55,7 @@ describe('index.js', () => {
 		const { getPackageName } = await import('./lib/steps/getPackageName.js');
 		const { getTemplate } = await import('./lib/steps/getTemplate.js');
 		const { getImmediate } = await import('./lib/steps/getImmediate.js');
+		const { getEnvVars } = await import('./lib/steps/getEnvVars.js');
 		const { scaffoldProject } = await import('./lib/steps/scaffoldProject.js');
 		const { showOutro } = await import('./lib/steps/showOutro.js');
 
@@ -62,11 +64,19 @@ describe('index.js', () => {
 		vi.mocked(getPackageName).mockResolvedValue({ packageName: 'my-pkg', cancelled: false });
 		vi.mocked(getTemplate).mockResolvedValue({ template: 'vanilla', cancelled: false });
 		vi.mocked(getImmediate).mockResolvedValue({ immediate: true, cancelled: false });
+		vi.mocked(getEnvVars).mockResolvedValue({
+			envVars: { username: 'u', target: 't', password: 'p' },
+			cancelled: false,
+		});
 		vi.mocked(scaffoldProject).mockReturnValue('/root');
 
 		await import('./index.js?full-flow');
 
-		expect(scaffoldProject).toHaveBeenCalledWith('my-dir', 'my-project', 'my-pkg', 'vanilla');
+		expect(scaffoldProject).toHaveBeenCalledWith('my-dir', 'my-project', 'my-pkg', 'vanilla', {
+			username: 'u',
+			target: 't',
+			password: 'p',
+		});
 		expect(showOutro).toHaveBeenCalledWith('/root', expect.any(String), true);
 	});
 

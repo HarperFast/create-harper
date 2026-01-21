@@ -66,6 +66,19 @@ describe('Integration tests', () => {
 			// Check for renamed files
 			expect(fs.existsSync(path.join(targetDir, '.gitignore'))).toBe(true);
 			expect(fs.existsSync(path.join(targetDir, '.aiignore'))).toBe(true);
+
+			const templateDir = path.resolve(root, `template-${template}`);
+			if (fs.existsSync(path.join(templateDir, '_env'))) {
+				expect(fs.existsSync(path.join(targetDir, '.env'))).toBe(true);
+				const envContent = fs.readFileSync(path.join(targetDir, '.env'), 'utf-8');
+				expect(envContent).toContain('CLI_TARGET_USERNAME');
+				expect(envContent).toContain('CLI_TARGET_PASSWORD');
+				expect(envContent).toContain('CLI_TARGET');
+			}
+
+			if (fs.existsSync(path.join(templateDir, '_env.example'))) {
+				expect(fs.existsSync(path.join(targetDir, '.env.example'))).toBe(true);
+			}
 		});
 	}
 });

@@ -5,6 +5,7 @@ import mri from 'mri';
 import { helpMessage } from './lib/constants/helpMessage.js';
 import { formatTargetDir } from './lib/fs/formatTargetDir.js';
 import { pkgFromUserAgent } from './lib/pkg/pkgFromUserAgent.js';
+import { getEnvVars } from './lib/steps/getEnvVars.js';
 import { getImmediate } from './lib/steps/getImmediate.js';
 import { getPackageName } from './lib/steps/getPackageName.js';
 import { getProjectName } from './lib/steps/getProjectName.js';
@@ -16,7 +17,7 @@ import { showOutro } from './lib/steps/showOutro.js';
 const argv = mri(process.argv.slice(2), {
 	boolean: ['help', 'overwrite', 'immediate', 'interactive'],
 	alias: { h: 'help', t: 'template', i: 'immediate' },
-	string: ['template'],
+	string: ['template', 'cli-target-username', 'cli-target'],
 });
 
 init().catch((e) => {
@@ -74,9 +75,14 @@ async function init() {
 	if (immediateResult.cancelled) { return cancel(); }
 	const { immediate } = immediateResult;
 
-	// 6. Write out the contents based on all prior steps.
-	const root = scaffoldProject(targetDir, projectName, packageName, template);
+	// 6. Get environment variables for .env file
+	const envVarsResult = await getEnvVars(argv, interactive, template);
+	if (envVarsResult.cancelled) { return cancel(); }
+	const { envVars } = envVarsResult;
 
-	// 7. Log out the next steps.
+	// 7. Write out the contents based on all prior steps.
+	const root = scaffoldProject(targetDir, projectName, packageName, template, envVars);
+
+	// 8. Log out the next steps.
 	showOutro(root, pkgManager, immediate);
 }
