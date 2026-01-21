@@ -15,7 +15,6 @@ import { emptyDir } from './lib/fs/emptyDir.js';
 import { formatTargetDir } from './lib/fs/formatTargetDir.js';
 import { isEmpty } from './lib/fs/isEmpty.js';
 import { install } from './lib/install.js';
-import { getFullCustomCommand } from './lib/pkg/getFullCustomCommand.js';
 import { getInstallCommand } from './lib/pkg/getInstallCommand.js';
 import { getRunCommand } from './lib/pkg/getRunCommand.js';
 import { isValidPackageName } from './lib/pkg/isValidPackageName.js';
@@ -180,16 +179,9 @@ async function init() {
 					message: 'Select a variant:',
 					options: framework.variants.map((variant) => {
 						const variantColor = variant.color;
-						const command = variant.customCommand
-							? getFullCustomCommand(variant.customCommand, pkgInfo).replace(
-								/ TARGET_DIR$/,
-								'',
-							)
-							: undefined;
 						return {
 							label: variantColor(variant.display || variant.name),
 							value: variant.name,
-							hint: command,
 						};
 					}),
 				});
@@ -205,20 +197,6 @@ async function init() {
 
 	const root = path.join(cwd, targetDir);
 
-	const { customCommand } = FRAMEWORKS.flatMap((f) => f.variants).find((v) => v.name === template) ?? {};
-
-	if (customCommand) {
-		const fullCustomCommand = getFullCustomCommand(customCommand, pkgInfo);
-
-		const [command, ...args] = fullCustomCommand.split(' ');
-		// we replace TARGET_DIR here because targetDir may include a space
-		const replacedArgs = args.map((arg) => arg.replace('TARGET_DIR', () => targetDir));
-		const { status } = spawn.sync(command, replacedArgs, {
-			stdio: 'inherit',
-		});
-		process.exit(status ?? 0);
-	}
-
 	// 5. Ask about immediate install and package manager
 	let immediate = argImmediate;
 	if (immediate === undefined) {
@@ -233,7 +211,7 @@ async function init() {
 		}
 	}
 
-	// Only create a directory for built-in templates, not for customCommand
+	// create a directory for built-in templates
 	fs.mkdirSync(root, { recursive: true });
 	prompts.log.step(`Scaffolding project in ${root}...`);
 
