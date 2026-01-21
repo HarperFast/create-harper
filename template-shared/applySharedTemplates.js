@@ -30,7 +30,6 @@ const {
 			'template-vanilla-ts',
 		],
 	};
-	// await copyDir();
 	for (const key in copiesToMake) {
 		const fromShared = path.resolve(import.meta.dirname, key);
 		for (const targetTemplate of copiesToMake[key]) {
