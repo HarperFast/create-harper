@@ -56,7 +56,6 @@
 		"@commitlint/config-conventional": "^20.0.0",
 		"@vitest/coverage-v8": "^4.0.17",
 		"dprint": "^0.51.1",
-		"harperdb": "^4.7.15",
 		"oxlint": "^1.38.0",
 		"vitest": "^4.0.17"
 	}
