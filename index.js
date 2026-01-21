@@ -2,29 +2,22 @@
 import * as prompts from '@clack/prompts';
 import { determineAgent } from '@vercel/detect-agent';
 import mri from 'mri';
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
 import { helpMessage } from './lib/constants/helpMessage.js';
-import { crawlTemplateDir } from './lib/fs/crawlTemplateDir.js';
 import { formatTargetDir } from './lib/fs/formatTargetDir.js';
-import { install } from './lib/install.js';
-import { getInstallCommand } from './lib/pkg/getInstallCommand.js';
-import { getRunCommand } from './lib/pkg/getRunCommand.js';
 import { pkgFromUserAgent } from './lib/pkg/pkgFromUserAgent.js';
-import { start } from './lib/start.js';
 import { getImmediate } from './lib/steps/getImmediate.js';
 import { getPackageName } from './lib/steps/getPackageName.js';
 import { getProjectName } from './lib/steps/getProjectName.js';
 import { getTemplate } from './lib/steps/getTemplate.js';
 import { handleExistingDir } from './lib/steps/handleExistingDir.js';
+import { scaffoldProject } from './lib/steps/scaffoldProject.js';
+import { showOutro } from './lib/steps/showOutro.js';
 
 const argv = mri(process.argv.slice(2), {
 	boolean: ['help', 'overwrite', 'immediate', 'interactive'],
 	alias: { h: 'help', t: 'template', i: 'immediate' },
 	string: ['template'],
 });
-const cwd = process.cwd();
 
 init().catch((e) => {
 	console.error(e);
@@ -81,31 +74,9 @@ async function init() {
 	if (immediateResult.cancelled) { return cancel(); }
 	const { immediate } = immediateResult;
 
-	// 6. create a directory for built-in templates
-	const root = path.join(cwd, targetDir);
-	fs.mkdirSync(root, { recursive: true });
-	prompts.log.step(`Scaffolding project in ${root}...`);
+	// 6. Write out the contents based on all prior steps.
+	const root = scaffoldProject(targetDir, projectName, packageName, template);
 
-	const substitutions = {
-		'your-project-name-here': projectName,
-		'your-package-name-here': packageName,
-	};
-
-	const templateDir = path.resolve(fileURLToPath(import.meta.url), '..', `template-${template}`);
-	crawlTemplateDir(root, templateDir, substitutions);
-
-	if (immediate) {
-		install(root, pkgManager);
-		start(root, pkgManager);
-	} else {
-		let doneMessage = '';
-		const cdProjectName = path.relative(cwd, root);
-		doneMessage += `Done. Now run:\n`;
-		if (root !== cwd) {
-			doneMessage += `\n  cd ${cdProjectName.includes(' ') ? `"${cdProjectName}"` : cdProjectName}`;
-		}
-		doneMessage += `\n  ${getInstallCommand(pkgManager).join(' ')}`;
-		doneMessage += `\n  ${getRunCommand(pkgManager, 'dev').join(' ')}`;
-		prompts.outro(doneMessage);
-	}
+	// 7. Log out the next steps.
+	showOutro(root, pkgManager, immediate);
 }
