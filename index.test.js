@@ -1,0 +1,104 @@
+import mri from 'mri';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+
+// Mock all dependencies of index.js
+vi.mock('@clack/prompts');
+vi.mock('@vercel/detect-agent', () => ({
+	determineAgent: vi.fn().mockResolvedValue({ isAgent: false }),
+}));
+vi.mock('mri', () => ({
+	default: vi.fn(() => ({
+		_: [],
+		help: true, // Trigger help
+	})),
+}));
+vi.mock('./lib/constants/helpMessage.js', () => ({
+	helpMessage: 'help message',
+}));
+vi.mock('./lib/steps/getProjectName.js');
+vi.mock('./lib/steps/handleExistingDir.js');
+vi.mock('./lib/steps/getPackageName.js');
+vi.mock('./lib/steps/getTemplate.js');
+vi.mock('./lib/steps/getImmediate.js');
+vi.mock('./lib/steps/scaffoldProject.js');
+vi.mock('./lib/steps/showOutro.js');
+
+describe('index.js', () => {
+	beforeEach(() => {
+		vi.clearAllMocks();
+		vi.spyOn(console, 'log').mockImplementation(() => {});
+	});
+
+	test('shows help message and exits', async () => {
+		vi.mocked(mri).mockReturnValue({
+			_: [],
+			help: true,
+		});
+		await import('./index.js?help');
+		expect(console.log).toHaveBeenCalledWith('help message');
+	});
+
+	test('runs the full init flow', async () => {
+		vi.mocked(mri).mockReturnValue({
+			_: ['my-dir'],
+			template: 'vanilla',
+			overwrite: true,
+			immediate: true,
+			interactive: false,
+		});
+		// @ts-ignore
+		import.meta.jest = vi;
+
+		const { getProjectName } = await import('./lib/steps/getProjectName.js');
+		const { handleExistingDir } = await import('./lib/steps/handleExistingDir.js');
+		const { getPackageName } = await import('./lib/steps/getPackageName.js');
+		const { getTemplate } = await import('./lib/steps/getTemplate.js');
+		const { getImmediate } = await import('./lib/steps/getImmediate.js');
+		const { scaffoldProject } = await import('./lib/steps/scaffoldProject.js');
+		const { showOutro } = await import('./lib/steps/showOutro.js');
+
+		vi.mocked(getProjectName).mockResolvedValue({ projectName: 'my-project', targetDir: 'my-dir', cancelled: false });
+		vi.mocked(handleExistingDir).mockResolvedValue({ cancelled: false });
+		vi.mocked(getPackageName).mockResolvedValue({ packageName: 'my-pkg', cancelled: false });
+		vi.mocked(getTemplate).mockResolvedValue({ template: 'vanilla', cancelled: false });
+		vi.mocked(getImmediate).mockResolvedValue({ immediate: true, cancelled: false });
+		vi.mocked(scaffoldProject).mockReturnValue('/root');
+
+		await import('./index.js?full-flow');
+
+		expect(scaffoldProject).toHaveBeenCalledWith('my-dir', 'my-project', 'my-pkg', 'vanilla');
+		expect(showOutro).toHaveBeenCalledWith('/root', expect.any(String), true);
+	});
+
+	test('shows agent message if in agent environment and interactive', async () => {
+		const { determineAgent } = await import('@vercel/detect-agent');
+		vi.mocked(determineAgent).mockResolvedValue({ isAgent: true, agent: 'test-agent' });
+		vi.mocked(mri).mockReturnValue({
+			_: ['my-dir'],
+			interactive: true,
+		});
+		await import('./index.js?agent-interactive');
+		expect(console.log).toHaveBeenCalledWith(expect.stringContaining('To create in one go, run:'));
+	});
+
+	test('logs error if init fails', async () => {
+		vi.spyOn(console, 'error').mockImplementation(() => {});
+		const { getProjectName } = await import('./lib/steps/getProjectName.js');
+		vi.mocked(getProjectName).mockRejectedValue(new Error('init failed'));
+		vi.mocked(mri).mockReturnValue({
+			_: [],
+		});
+		await import('./index.js?init-fail');
+		expect(console.error).toHaveBeenCalledWith(expect.any(Error));
+	});
+
+	test('cancels if project name selection is cancelled', async () => {
+		const { getProjectName } = await import('./lib/steps/getProjectName.js');
+		vi.mocked(getProjectName).mockResolvedValue({ cancelled: true });
+		vi.mocked(mri).mockReturnValue({ _: [] });
+		const prompts = await import('@clack/prompts');
+
+		await import('./index.js?cancel');
+		expect(prompts.cancel).toHaveBeenCalled();
+	});
+});
