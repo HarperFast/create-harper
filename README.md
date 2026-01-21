@@ -78,3 +78,8 @@ Currently supported template presets include:
 - `qwik-ts`
 
 You can use `.` for the project name to scaffold in the current directory.
+
+## Shout Out
+
+This project is based largely on the prior work of the Vite team on Create Vite:
+https://github.com/vitejs/vite/tree/main/packages/create-vite
