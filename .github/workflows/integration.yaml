@@ -29,13 +29,13 @@ jobs:
 
       - name: Setup pnpm
         if: matrix.pkg-manager == 'pnpm'
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4
         with:
           version: 8
 
       - name: Setup Bun
         if: matrix.pkg-manager == 'bun'
-        uses: oven-sh/setup-bun@v2
+        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2
 
       - name: Setup Deno
         if: matrix.pkg-manager == 'deno'
