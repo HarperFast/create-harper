@@ -7,9 +7,9 @@ import { pkgFromUserAgent } from './lib/pkg/pkgFromUserAgent.js';
 import { checkForUpdate } from './lib/steps/checkForUpdate.js';
 import { getEnvVars } from './lib/steps/getEnvVars.js';
 import { getExamples } from './lib/steps/getExamples.js';
-import { getImmediate } from './lib/steps/getImmediate.js';
 import { getPackageName } from './lib/steps/getPackageName.js';
 import { getProjectName } from './lib/steps/getProjectName.js';
+import { getRunAppImmediately } from './lib/steps/getRunAppImmediately.js';
 import { getTemplate } from './lib/steps/getTemplate.js';
 import { handleExistingDir } from './lib/steps/handleExistingDir.js';
 import { helpAgents } from './lib/steps/helpAgents.js';
@@ -85,7 +85,7 @@ async function init() {
 	// Should we do a package manager installation?
 	const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent);
 	const pkgManager = pkgInfo ? pkgInfo.name : 'npm';
-	const immediateResult = await getImmediate(argImmediate, interactive, pkgManager);
+	const immediateResult = await getRunAppImmediately(argImmediate, interactive, pkgManager);
 	if (immediateResult.cancelled) { return cancel(); }
 	const { immediate } = immediateResult;
 
