@@ -1,0 +1,10 @@
+{
+	"name": "your-package-name-here",
+	"version": "1.0.0",
+	"description": "Your new Harper app",
+	"type": "module",
+	"scripts": {},
+	"devDependencies": {
+		"harperdb": "^4.7.15"
+	}
+}
