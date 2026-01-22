@@ -43,8 +43,8 @@ jobs:
         run: npm ci
       - name: Check lint
         run: npm run lint:check
-      - name: Check check
-        run: npm run check:check
+      - name: Check format
+        run: npm run format:check
       - name: Run unit tests
         run: npm test
       - name: Semantic Release
