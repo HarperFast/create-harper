@@ -1,4 +1,6 @@
-# create-harper <a href="https://npmjs.com/package/create-harper"><img src="https://img.shields.io/npm/v/create-harper" alt="npm package"></a>
+![npm create harper](./README.svg)
+
+<a href="https://npmjs.com/package/create-harper"><img src="https://img.shields.io/npm/v/create-harper" alt="npm package"></a>
 
 ## Scaffolding Your First Harper Project
 
@@ -61,6 +63,16 @@ Currently supported template presets include:
 - `react-ts`
 
 You can use `.` for the project name to scaffold in the current directory.
+
+## Auto-updates
+
+`create-harper` will automatically check for newer versions on npm. If a newer version is available, it will automatically re-run the process using the latest version to ensure you are using the most up-to-date templates and features.
+
+If you wish to disable this behavior, you can set the `CREATE_HARPER_SKIP_UPDATE` environment variable:
+
+```bash
+CREATE_HARPER_SKIP_UPDATE=true npm create harper@latest
+```
 
 ## Shout Out
 
