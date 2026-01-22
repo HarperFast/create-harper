@@ -25,7 +25,7 @@
 		"commitlint": "commitlint --edit",
 		"format:check": "dprint check",
 		"format:fix": "dprint fmt",
-		"format:staged": "dprint check --staged",
+		"format:staged": "dprint check --staged --allow-no-files",
 		"lint:check": "oxlint .",
 		"lint:fix": "oxlint . --fix",
 		"prepare": "husky",
