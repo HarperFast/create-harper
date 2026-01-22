@@ -1,0 +1,108 @@
+name: Integration Test
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  test:
+    name: Test (${{ matrix.pkg-manager }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        pkg-manager: [npm, yarn, pnpm, bun, deno]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+
+      - name: Setup Node.js
+        uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Setup pnpm
+        if: matrix.pkg-manager == 'pnpm'
+        uses: pnpm/action-setup@v4
+        with:
+          version: 8
+
+      - name: Setup Bun
+        if: matrix.pkg-manager == 'bun'
+        uses: oven-sh/setup-bun@v2
+
+      - name: Setup Deno
+        if: matrix.pkg-manager == 'deno'
+        uses: denoland/setup-deno@v2
+
+      - name: Run Integration Test
+        shell: bash
+        run: |
+          PROJECT_NAME="test-app-${{ matrix.pkg-manager }}"
+          export CREATE_HARPER_SKIP_UPDATE=true
+
+          echo "Testing with ${{ matrix.pkg-manager }}..."
+
+          case ${{ matrix.pkg-manager }} in
+            npm)
+              npx . "$PROJECT_NAME" --template vanilla --no-interactive --overwrite
+              ;;
+            yarn)
+              corepack enable
+              yarn node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite
+              ;;
+            pnpm)
+              pnpm exec node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite
+              ;;
+            bun)
+              bun run index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite
+              ;;
+            deno)
+              # Deno doesn't set npm_config_user_agent, so we set it manually
+              export npm_config_user_agent="deno/1.40.0"
+              deno run -A index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite
+              ;;
+          esac
+
+          # Verification
+          if [ ! -d "$PROJECT_NAME" ]; then
+            echo "Error: Project directory $PROJECT_NAME was not created"
+            exit 1
+          fi
+
+          if [ ! -f "$PROJECT_NAME/package.json" ]; then
+            echo "Error: package.json was not created in $PROJECT_NAME"
+            exit 1
+          fi
+
+          # Output check
+          case ${{ matrix.pkg-manager }} in
+            npm)
+              OUTPUT=$(npx . "$PROJECT_NAME" --template vanilla --no-interactive --overwrite)
+              echo "$OUTPUT" | grep -F "npm install" || (echo "Expected 'npm install' in output"; exit 1)
+              ;;
+            yarn)
+              OUTPUT=$(yarn node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite)
+              echo "$OUTPUT" | grep -F "yarn" || (echo "Expected 'yarn' in output"; exit 1)
+              ;;
+            pnpm)
+              OUTPUT=$(pnpm exec node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite)
+              echo "$OUTPUT" | grep -F "pnpm install" || (echo "Expected 'pnpm install' in output"; exit 1)
+              ;;
+            bun)
+              OUTPUT=$(bun run index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite)
+              echo "$OUTPUT" | grep -F "bun install" || (echo "Expected 'bun install' in output"; exit 1)
+              ;;
+            deno)
+              export npm_config_user_agent="deno/1.40.0"
+              OUTPUT=$(deno run -A index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite)
+              echo "$OUTPUT" | grep -F "deno task dev" || (echo "Expected 'deno task dev' in output"; exit 1)
+              ;;
+          esac
+          echo "Integration test passed for ${{ matrix.pkg-manager }}!"
