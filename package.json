@@ -16,8 +16,6 @@
 		"!lib/**/*.test.js",
 		"template-react/",
 		"template-react-ts/",
-		"template-studio/",
-		"template-studio-ts/",
 		"template-vanilla/",
 		"template-vanilla-ts/"
 	],
