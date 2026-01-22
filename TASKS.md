@@ -1,5 +1,0 @@
-- Make sure harper CLI is installed and configured
-- Publish pipeline with trusted publisher
-  - create-harper
-  - create-harperdb?
-  - @harperfast/create?
