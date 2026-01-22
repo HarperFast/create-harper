@@ -36,19 +36,15 @@ For more information on Harper Components, see the [Components documentation](ht
 
 Take a look at the [default configuration](./config.yaml), which specifies how files are handled in your application.
 
-The [schema.graphql](./schema.graphql) is the table schema definition. This is the main starting point for defining your database schema, specifying which tables you want and what attributes/fields they should have.
+The [schemas/exampleTable.graphql](schemas/exampleTable.graphql) is an example table schema definition. This is the main starting point for defining your database schema, specifying which tables you want and what attributes/fields they should have.
 
-The [resources.js](resources/greeting.js) provides a template for defining JavaScript resource classes, for customized application logic in your endpoints.
+The [resources/greeting.js](resources/greeting.js) provides a template for defining JavaScript resource classes, for customized application logic in your endpoints.
 
 ## Deployment
 
 When you are ready, head to [https://fabric.harper.fast/](https://fabric.harper.fast/), log in to your account, and create a cluster.
 
-Set up your .env file with your secure cluster credentials. Don't commit this file to source control!
-
-```sh
-npm run login
-```
+Make sure you've configured your [.env](.env) file with your secure cluster credentials. Don't commit this file to source control!
 
 Then you can deploy your app to your cluster:
 
