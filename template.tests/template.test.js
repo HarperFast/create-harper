@@ -41,6 +41,7 @@ describe('Integration tests', () => {
 				env: {
 					...process.env,
 					_HARPER_TEST_CLI: '1',
+					CREATE_HARPER_SKIP_UPDATE: '1',
 					// Ensure we use a predictable agent for the test if possible
 					npm_config_user_agent: 'npm/10.0.0 node/v20.0.0 darwin arm64',
 				},
