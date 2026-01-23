@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import path from 'node:path';
-import colors from 'picocolors';
 import { copyDir } from '../lib/fs/copyDir.js';
 
 (async function() {
@@ -9,19 +8,15 @@ import { copyDir } from '../lib/fs/copyDir.js';
 		'all': [
 			'template-react',
 			'template-react-ts',
-			'template-studio',
-			'template-studio-ts',
 			'template-vanilla',
 			'template-vanilla-ts',
 		],
 		'js': [
 			'template-react',
-			'template-studio',
 			'template-vanilla',
 		],
 		'ts': [
 			'template-react-ts',
-			'template-studio-ts',
 			'template-vanilla-ts',
 		],
 	};

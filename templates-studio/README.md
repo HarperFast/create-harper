@@ -1,9 +1,10 @@
-# Studio Template Files
+# Shared Template Files
 
-Studio has very similar templates to what we expose through `npm create harper` with very programmatic tweaks made to them that are only relevant to Studio.
+This directory contains some shared files and configurations that are used across different templates. There is a
+simple script to quickly copy the changes here into the other templates.
 
 ```bash
-npm run templates:build-studio-templates
+npm run templates:apply-shared-templates
 ```
 
 ## Why?

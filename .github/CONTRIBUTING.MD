@@ -17,9 +17,17 @@ npm install
 ## Development workflow
 
 - Link the package: `npm link`
-- Run int: `npm create harper`
+- Run it: `npm create harper`
 - Lint: `npm run lint:fix`
 - Format: `npm run format:fix`
+
+## Updating Templates
+
+The templates are located in the top level directory with predictable names like [template-react](../template-react/README.md). A handful of files are shared between templates and are located in the [templates-shared](../templates-shared/README.md) directory. The files are committed to every individual template so that if someone looks at the template in GitHub or on the filesystem, they'll see all the files.
+
+To make maintenance easier, updates should be made in the shared folder. Then you can use the `npm run templates:apply-shared-templates` command to apply the changes to all templates.
+
+There are also Studio templates located in the [templates-studio](../templates-studio/README.md) directory. These are used when creating an application with a template through the Studio UI.
 
 ## Commit conventions
 
