@@ -1,8 +1,6 @@
 #!/usr/bin/env node
 import * as prompts from '@clack/prompts';
-import mri from 'mri';
 import { helpMessage } from './lib/constants/helpMessage.js';
-import { formatTargetDir } from './lib/fs/formatTargetDir.js';
 import { pkgFromUserAgent } from './lib/pkg/pkgFromUserAgent.js';
 import { checkForUpdate } from './lib/steps/checkForUpdate.js';
 import { getEnvVars } from './lib/steps/getEnvVars.js';
@@ -13,6 +11,7 @@ import { getRunAppImmediately } from './lib/steps/getRunAppImmediately.js';
 import { getTemplate } from './lib/steps/getTemplate.js';
 import { handleExistingDir } from './lib/steps/handleExistingDir.js';
 import { helpAgents } from './lib/steps/helpAgents.js';
+import { parseArgv } from './lib/steps/parseArgv.js';
 import { scaffoldProject } from './lib/steps/scaffoldProject.js';
 import { showOutro } from './lib/steps/showOutro.js';
 
@@ -21,48 +20,20 @@ init().catch((e) => {
 });
 
 async function init() {
-	const argv = mri(process.argv.slice(2), {
-		boolean: [
-			'help',
-			'immediate',
-			'interactive',
-			'overwrite',
-			'version',
-		],
-		string: [
-			'deploymentURL',
-			'deploymentUsername',
-			'template',
-		],
-		alias: {
-			h: 'help',
-			i: 'immediate',
-			t: 'template',
-			v: 'version',
-		},
-	});
-	const argDeploymentURL = argv.deploymentURL;
-	const argDeploymentUsername = argv.deploymentUsername;
-	const argImmediate = argv.immediate;
-	const argInteractive = argv.interactive;
-	const argOverwrite = argv.overwrite;
-	const argTargetDir = argv._[0] ? formatTargetDir(String(argv._[0])) : undefined;
-	const argTemplate = argv.template;
-	const help = argv.help;
-	const version = argv.version;
+	const args = parseArgv(process.argv.slice(2));
 
-	if (help) {
+	if (args.help) {
 		console.log(helpMessage);
 		return;
 	}
 
 	const currentVersion = await checkForUpdate();
-	if (version) {
+	if (args.version) {
 		console.log(`Current version: ${currentVersion}`);
 		return;
 	}
 
-	const interactive = argInteractive ?? process.stdin.isTTY;
+	const interactive = args.interactive;
 
 	// Detect AI agent environment for better agent experience (AX)
 	await helpAgents(interactive);
@@ -70,12 +41,12 @@ async function init() {
 	const cancel = () => prompts.cancel('Operation cancelled');
 
 	// Get the project name and target directory
-	const projectNameResult = await getProjectName(argTargetDir, interactive);
+	const projectNameResult = await getProjectName(args.targetDir, interactive);
 	if (projectNameResult.cancelled) { return cancel(); }
 	const { projectName, targetDir } = projectNameResult;
 
 	// Handle if the directory exists and isn't empty
-	const handleExistingDirResult = await handleExistingDir(targetDir, argOverwrite, interactive);
+	const handleExistingDirResult = await handleExistingDir(targetDir, args.overwrite, interactive);
 	if (handleExistingDirResult.cancelled) { return cancel(); }
 
 	// Get the package name
@@ -84,7 +55,7 @@ async function init() {
 	const { packageName } = packageNameResult;
 
 	// Choose a framework and variant
-	const templateResult = await getTemplate(argTemplate, interactive);
+	const templateResult = await getTemplate(args.template, interactive);
 	if (templateResult.cancelled) { return cancel(); }
 	const { template } = templateResult;
 
@@ -94,14 +65,14 @@ async function init() {
 	const { excludedFiles } = examplesResult;
 
 	// Get environment variables for .env file
-	const envVarsResult = await getEnvVars(interactive, template, argDeploymentUsername, argDeploymentURL);
+	const envVarsResult = await getEnvVars(interactive, template, args.deploymentUsername, args.deploymentURL);
 	if (envVarsResult.cancelled) { return cancel(); }
 	const { envVars } = envVarsResult;
 
 	// Should we do a package manager installation?
 	const pkgInfo = pkgFromUserAgent(process.env.npm_config_user_agent);
 	const pkgManager = pkgInfo ? pkgInfo.name : 'npm';
-	const immediateResult = await getRunAppImmediately(argImmediate, interactive, pkgManager);
+	const immediateResult = await getRunAppImmediately(args.immediate, interactive, pkgManager);
 	if (immediateResult.cancelled) { return cancel(); }
 	const { immediate } = immediateResult;
 

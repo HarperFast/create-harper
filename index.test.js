@@ -1,17 +1,12 @@
-import mri from 'mri';
 import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { parseArgv } from './lib/steps/parseArgv.js';
 
 // Mock all dependencies of index.js
 vi.mock('@clack/prompts');
 vi.mock('@vercel/detect-agent', () => ({
 	determineAgent: vi.fn().mockResolvedValue({ isAgent: false }),
 }));
-vi.mock('mri', () => ({
-	default: vi.fn(() => ({
-		_: [],
-		help: true, // Trigger help
-	})),
-}));
+vi.mock('./lib/steps/parseArgv.js');
 vi.mock('./lib/constants/helpMessage.js', () => ({
 	helpMessage: 'help message',
 }));
@@ -34,8 +29,7 @@ describe('index.js', () => {
 	});
 
 	test('shows help message and exits', async () => {
-		vi.mocked(mri).mockReturnValue({
-			_: [],
+		vi.mocked(parseArgv).mockReturnValue({
 			help: true,
 		});
 		await import('./index.js?help');
@@ -43,8 +37,8 @@ describe('index.js', () => {
 	});
 
 	test('runs the full init flow', async () => {
-		vi.mocked(mri).mockReturnValue({
-			_: ['my-dir'],
+		vi.mocked(parseArgv).mockReturnValue({
+			targetDir: 'my-dir',
 			template: 'vanilla',
 			overwrite: true,
 			immediate: true,
@@ -92,8 +86,8 @@ describe('index.js', () => {
 	test('shows agent message if in agent environment and interactive', async () => {
 		const { determineAgent } = await import('@vercel/detect-agent');
 		vi.mocked(determineAgent).mockResolvedValue({ isAgent: true, agent: 'test-agent' });
-		vi.mocked(mri).mockReturnValue({
-			_: ['my-dir'],
+		vi.mocked(parseArgv).mockReturnValue({
+			targetDir: 'my-dir',
 			interactive: true,
 		});
 		await import('./index.js?agent-interactive');
@@ -105,9 +99,7 @@ describe('index.js', () => {
 	test('logs error if init fails', async () => {
 		const { getProjectName } = await import('./lib/steps/getProjectName.js');
 		vi.mocked(getProjectName).mockRejectedValue(new Error('init failed'));
-		vi.mocked(mri).mockReturnValue({
-			_: [],
-		});
+		vi.mocked(parseArgv).mockReturnValue({});
 		await import('./index.js?init-fail');
 		await vi.waitFor(() => {
 			expect(console.error).toHaveBeenCalled();
@@ -118,7 +110,7 @@ describe('index.js', () => {
 	test('cancels if project name selection is cancelled', async () => {
 		const { getProjectName } = await import('./lib/steps/getProjectName.js');
 		vi.mocked(getProjectName).mockResolvedValue({ cancelled: true });
-		vi.mocked(mri).mockReturnValue({ _: [] });
+		vi.mocked(parseArgv).mockReturnValue({});
 		const prompts = await import('@clack/prompts');
 
 		await import('./index.js?cancel');
