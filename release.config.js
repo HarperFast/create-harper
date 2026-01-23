@@ -13,6 +13,7 @@ module.exports = {
 						{ type: 'perf', section: 'Performance Improvements' },
 						{ type: 'refactor', section: 'Code Improvements' },
 						{ type: 'revert', section: 'Reverts' },
+						{ type: 'test', section: 'Test Improvements' },
 						{ type: 'chore', scope: 'deps', section: 'Dependency Updates' },
 					],
 				},
