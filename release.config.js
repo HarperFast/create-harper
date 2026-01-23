@@ -11,6 +11,7 @@ module.exports = {
 						{ type: 'feature', section: 'Features' },
 						{ type: 'fix', section: 'Bug Fixes' },
 						{ type: 'perf', section: 'Performance Improvements' },
+						{ type: 'refactor', section: 'Code Improvements' },
 						{ type: 'revert', section: 'Reverts' },
 						{ type: 'chore', scope: 'deps', section: 'Dependency Updates' },
 					],

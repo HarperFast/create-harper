@@ -16,31 +16,47 @@ import { helpAgents } from './lib/steps/helpAgents.js';
 import { scaffoldProject } from './lib/steps/scaffoldProject.js';
 import { showOutro } from './lib/steps/showOutro.js';
 
-const argv = mri(process.argv.slice(2), {
-	boolean: ['help', 'overwrite', 'immediate', 'interactive'],
-	alias: { h: 'help', t: 'template', i: 'immediate' },
-	string: ['template', 'cli-target-username', 'cli-target'],
-});
-
 init().catch((e) => {
 	console.error(e);
 });
 
 async function init() {
-	const argTargetDir = argv._[0] ? formatTargetDir(String(argv._[0])) : undefined;
-	const argTemplate = argv.template;
-	const argOverwrite = argv.overwrite;
+	const argv = mri(process.argv.slice(2), {
+		boolean: [
+			'help',
+			'immediate',
+			'interactive',
+			'overwrite',
+			'version',
+		],
+		string: [
+			'deploymentURL',
+			'deploymentUsername',
+			'template',
+		],
+		alias: {
+			h: 'help',
+			i: 'immediate',
+			t: 'template',
+			v: 'version',
+		},
+	});
+	const argDeploymentURL = argv.deploymentURL;
+	const argDeploymentUsername = argv.deploymentUsername;
 	const argImmediate = argv.immediate;
 	const argInteractive = argv.interactive;
-
+	const argOverwrite = argv.overwrite;
+	const argTargetDir = argv._[0] ? formatTargetDir(String(argv._[0])) : undefined;
+	const argTemplate = argv.template;
 	const help = argv.help;
+	const version = argv.version;
+
 	if (help) {
 		console.log(helpMessage);
 		return;
 	}
 
 	const currentVersion = await checkForUpdate();
-	const version = argv.version;
 	if (version) {
 		console.log(`Current version: ${currentVersion}`);
 		return;
@@ -78,7 +94,7 @@ async function init() {
 	const { excludedFiles } = examplesResult;
 
 	// Get environment variables for .env file
-	const envVarsResult = await getEnvVars(argv, interactive, template);
+	const envVarsResult = await getEnvVars(interactive, template, argDeploymentUsername, argDeploymentURL);
 	if (envVarsResult.cancelled) { return cancel(); }
 	const { envVars } = envVarsResult;
 
