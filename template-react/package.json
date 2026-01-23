@@ -2,6 +2,7 @@
 	"name": "your-package-name-here",
 	"version": "0.0.0",
 	"type": "module",
+	"repository": "github:HarperFast/create-harper",
 	"scripts": {
 		"dev": "harper run .",
 		"test": "echo 'No tests implemented yet'",
