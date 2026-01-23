@@ -1,7 +1,6 @@
 {
-	"name": "your-package-name-here",
-	"version": "1.0.0",
-	"description": "Your new Harper app",
+	"name": "@harperfast/template-vanilla-studio",
+	"version": "0.7.0",
 	"type": "module",
 	"scripts": {},
 	"devDependencies": {

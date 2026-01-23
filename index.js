@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import * as prompts from '@clack/prompts';
+import path from 'node:path';
 import { helpMessage } from './lib/constants/helpMessage.js';
 import { pkgFromUserAgent } from './lib/pkg/pkgFromUserAgent.js';
 import { checkForUpdate } from './lib/steps/checkForUpdate.js';
@@ -77,7 +78,9 @@ async function init() {
 	const { immediate } = immediateResult;
 
 	// Write out the contents based on all prior steps.
-	const root = scaffoldProject(targetDir, projectName, packageName, template, envVars, excludedFiles);
+	const cwd = process.cwd();
+	const root = path.join(cwd, targetDir);
+	scaffoldProject(root, projectName, packageName, template, envVars, excludedFiles);
 
 	// Log out the next steps.
 	showOutro(root, pkgManager, immediate);

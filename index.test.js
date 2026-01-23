@@ -67,7 +67,6 @@ describe('index.js', () => {
 			envVars: { username: 'u', target: 't', password: 'p' },
 			cancelled: false,
 		});
-		vi.mocked(scaffoldProject).mockReturnValue('/root');
 
 		await import('./index.js?full-flow');
 
@@ -75,12 +74,12 @@ describe('index.js', () => {
 			expect(showOutro).toHaveBeenCalled();
 		});
 
-		expect(scaffoldProject).toHaveBeenCalledWith('my-dir', 'my-project', 'my-pkg', 'vanilla', {
+		expect(scaffoldProject).toHaveBeenCalledWith(expect.stringContaining('my-dir'), 'my-project', 'my-pkg', 'vanilla', {
 			username: 'u',
 			target: 't',
 			password: 'p',
 		}, ['ex1']);
-		expect(showOutro).toHaveBeenCalledWith('/root', expect.any(String), true);
+		expect(showOutro).toHaveBeenCalledWith(expect.stringContaining('my-dir'), expect.any(String), true);
 	});
 
 	test('shows agent message if in agent environment and interactive', async () => {

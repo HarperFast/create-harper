@@ -1,7 +1,6 @@
 {
-	"name": "your-package-name-here",
-	"private": true,
-	"version": "0.0.0",
+	"name": "@harperfast/template-react-ts-studio",
+	"version": "0.7.0",
 	"type": "module",
 	"scripts": {},
 	"devDependencies": {

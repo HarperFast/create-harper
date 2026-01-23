@@ -1,13 +1,12 @@
 #!/usr/bin/env node
 
+import fs from 'node:fs';
 import path from 'node:path';
-import colors from 'picocolors';
 import { copyDir } from '../lib/fs/copyDir.js';
-
-const {
-	cyan,
-	green,
-} = colors;
+import { emptyDir } from '../lib/fs/emptyDir.js';
+import { renameFile } from '../lib/fs/renameFile.js';
+import { writeFile } from '../lib/fs/writeFile.js';
+import { getOwnVersion } from '../lib/pkg/packageInformation.js';
 
 (async function() {
 	const templatesToCopy = [
@@ -23,10 +22,13 @@ const {
 			fromTemplate,
 			toTemplate,
 			(srcFile) => !srcFile.includes('_env'),
-			(sourceContent, sourcePath, targetPath) => {
-				if (sourcePath.endsWith('package.json')) {
-					return sourceContent.replace(/"scripts":[\s\S]+?\t}/, '"scripts": {}');
-				} else if (sourcePath.endsWith('README.md')) {
+			(sourceContent, targetPath) => {
+				if (targetPath.endsWith('package.json')) {
+					return sourceContent
+						.replace(/your-package-name-here/g, `@harperfast/${targetTemplate}-studio`)
+						.replace(/"version": "0.0.0"/g, `"version": "${getOwnVersion()}"`)
+						.replace(/"scripts":[\s\S]+?\t}/, '"scripts": {}');
+				} else if (targetPath.endsWith('README.md')) {
 					return sourceContent
 						// Give a more accurate greeting.
 						.replace(
@@ -56,5 +58,13 @@ see what different users will be able to access through your API.`,
 				return sourceContent;
 			},
 		);
+
+		if (fs.existsSync(path.resolve(fromTemplate, '_github'))) {
+			emptyDir(path.resolve(toTemplate, '.github'));
+			renameFile(path.resolve(toTemplate, '_github'), path.resolve(toTemplate, '.github'));
+		}
+		renameFile(path.resolve(toTemplate, '_gitignore'), path.resolve(toTemplate, '.gitignore'));
+		renameFile(path.resolve(toTemplate, '_aiignore'), path.resolve(toTemplate, '.aiignore'));
+		writeFile(path.resolve(toTemplate, '.npmignore'), '!.gitignore\n.npmignore\n');
 	}
 })();
