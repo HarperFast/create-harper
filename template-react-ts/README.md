@@ -24,9 +24,9 @@ TypeScript is supported at runtime in Node.js through [type stripping](https://n
 
 ### Define Your Schema
 
-The [schemas/exampleTable.graphql](./schemas/exampleTable.graphql) is an example table schema definition. This is the main starting point for defining your database schema, specifying which tables you want and what attributes/fields they should have.
+The [schemas/examplePeople.graphql](./schemas/examplePeople.graphql) is an example table schema definition. This is the main starting point for defining your database schema, specifying which tables you want and what attributes/fields they should have.
 
-Open your [schemas/exampleTable.graphql](./schemas/exampleTable.graphql) to take a look at an example schema. You can add as many table definitions to a single schema file as you want. You can also create one file per schema.
+Open your [schemas/examplePeople.graphql](./schemas/examplePeople.graphql) to take a look at an example schema. You can add as many table definitions to a single schema file as you want. You can also create one file per schema.
 
 These schemas are the heart of a great Harper app. This is the main starting point for defining your database schema, specifying which tables you want and what attributes/fields they should have. REST endpoints will get stood up for any table that you `@export`.
 

@@ -1,4 +1,4 @@
-import { type IterableEventQueue, RequestTarget, Resource, tables, type User } from 'harperdb';
+import { type IterableEventQueue, RequestTarget, Resource, tables } from 'harperdb';
 
 interface ExampleSocketRecord {
 	id: string;
@@ -15,7 +15,7 @@ export class ExampleSocket extends Resource<ExampleSocketRecord> {
 		target: RequestTarget,
 		incomingMessages: IterableEventQueue<ExampleSocketRecord>,
 	): AsyncIterable<ExampleSocketRecord> {
-		const subscription = await tables.ExampleTable.subscribe(target);
+		const subscription = await tables.ExamplePeople.subscribe(target);
 		if (!incomingMessages) {
 			// Server sent events, no incoming messages!
 			// Subscribe to changes to the table.
@@ -25,7 +25,7 @@ export class ExampleSocket extends Resource<ExampleSocketRecord> {
 			const { type, id, name, tag } = message;
 			switch (type) {
 				case 'get':
-					const loaded = await tables.ExampleTable.get(id);
+					const loaded = await tables.ExamplePeople.get(id);
 					yield {
 						type: 'get',
 						id,
@@ -33,7 +33,7 @@ export class ExampleSocket extends Resource<ExampleSocketRecord> {
 					};
 					break;
 				case 'put':
-					await tables.ExampleTable.put(id, { name, tag });
+					await tables.ExamplePeople.put(id, { name, tag });
 					break;
 			}
 		}

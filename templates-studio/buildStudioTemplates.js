@@ -38,7 +38,7 @@ const {
 							'### Define Your Schema',
 							`### Define Your Schema
 
-Tap [+ New Table](./schemas/exampleTable.graphql?ShowNewTableModal=true) when viewing a schema file, and you'll be guided through the available options.`,
+Tap [+ New Table](./schemas/examplePeople.graphql?ShowNewTableModal=true) when viewing a schema file, and you'll be guided through the available options.`,
 						)
 						.replace(/database schema/ig, '[database schema](./databases)')
 						.replace(

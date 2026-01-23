@@ -1,6 +1,6 @@
 import { tables } from 'harperdb';
 
-export class ExampleTable extends tables.ExampleTable {
+export class ExamplePeople extends tables.ExamplePeople {
 	// we can define our own custom POST handler
 	post(content) {
 		// do something with the incoming content;
