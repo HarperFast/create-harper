@@ -1,9 +1,0 @@
-{
-	"name": "@harperfast/template-vanilla-ts-studio",
-	"version": "0.7.0",
-	"type": "module",
-	"scripts": {},
-	"devDependencies": {
-		"harperdb": "^4.7.15"
-	}
-}

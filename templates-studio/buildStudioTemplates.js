@@ -2,6 +2,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { templates } from '../lib/constants/templates.js';
 import { copyDir } from '../lib/fs/copyDir.js';
 import { emptyDir } from '../lib/fs/emptyDir.js';
 import { renameFile } from '../lib/fs/renameFile.js';
@@ -9,15 +10,11 @@ import { writeFile } from '../lib/fs/writeFile.js';
 import { getOwnVersion } from '../lib/pkg/packageInformation.js';
 
 (async function() {
-	const templatesToCopy = [
-		'template-react',
-		'template-react-ts',
-		'template-vanilla',
-		'template-vanilla-ts',
-	];
-	for (const targetTemplate of templatesToCopy) {
+	for (const templateName of templates) {
+		const targetTemplate = 'template-' + templateName;
 		const fromTemplate = path.resolve(import.meta.dirname, '..', targetTemplate);
 		const toTemplate = path.resolve(import.meta.dirname, targetTemplate);
+		emptyDir(toTemplate);
 		copyDir(
 			fromTemplate,
 			toTemplate,

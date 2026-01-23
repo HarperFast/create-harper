@@ -31,7 +31,8 @@
 		"test:coverage": "vitest run --coverage",
 		"test:watch": "vitest",
 		"templates:apply-shared-templates": "(cd templates-shared && node ./applySharedTemplates.js)",
-		"templates:build-studio-templates": "(cd templates-studio && node ./buildStudioTemplates.js)"
+		"templates:build-studio-templates": "(cd templates-studio && node ./buildStudioTemplates.js)",
+		"templates:publish-studio-templates": "(cd templates-studio && node ./publishStudioTemplates.js)"
 	},
 	"engines": {
 		"node": "^20.19.0 || >=22.12.0"
