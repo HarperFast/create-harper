@@ -9,6 +9,7 @@ module.exports = {
 					types: [
 						{ type: 'feat', section: 'Features' },
 						{ type: 'feature', section: 'Features' },
+						{ type: 'docs', section: 'Documentation' },
 						{ type: 'fix', section: 'Bug Fixes' },
 						{ type: 'perf', section: 'Performance Improvements' },
 						{ type: 'refactor', section: 'Code Improvements' },

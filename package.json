@@ -1,5 +1,6 @@
 {
 	"name": "create-harper",
+	"description": "Scaffold a new Harper project in JavaScript or TypeScript.",
 	"version": "0.8.3",
 	"type": "module",
 	"author": {
