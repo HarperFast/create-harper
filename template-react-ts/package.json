@@ -14,12 +14,12 @@
 	"devDependencies": {
 		"@harperfast/vite-plugin": "^0.0.1",
 		"@types/node": "^24.10.1",
-		"@types/react": "^19.2.3",
+		"@types/react": "^19.2.10",
 		"@types/react-dom": "^19.2.3",
 		"@vitejs/plugin-react": "^5.1.2",
-		"harperdb": "^4.7.15",
-		"react": "^19.2.3",
-		"react-dom": "^19.2.3",
+		"harperdb": "^4.7.16",
+		"react": "^19.2.4",
+		"react-dom": "^19.2.4",
 		"typescript": "~5.9.3",
 		"vite": "npm:rolldown-vite@7.3.1"
 	},
