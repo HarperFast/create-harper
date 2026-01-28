@@ -19,7 +19,7 @@ vi.mock('./lib/steps/getRunAppImmediately.js');
 vi.mock('./lib/steps/getEnvVars.js');
 vi.mock('./lib/steps/checkForUpdate.js');
 vi.mock('./lib/steps/scaffoldProject.js');
-vi.mock('./lib/steps/showOutro.js');
+vi.mock('./lib/steps/installAndOptionallyStart.js');
 
 describe('index.js', () => {
 	beforeEach(() => {
@@ -55,7 +55,7 @@ describe('index.js', () => {
 		const { getRunAppImmediately } = await import('./lib/steps/getRunAppImmediately.js');
 		const { getEnvVars } = await import('./lib/steps/getEnvVars.js');
 		const { scaffoldProject } = await import('./lib/steps/scaffoldProject.js');
-		const { showOutro } = await import('./lib/steps/showOutro.js');
+		const { installAndOptionallyStart } = await import('./lib/steps/installAndOptionallyStart.js');
 
 		vi.mocked(getProjectName).mockResolvedValue({ projectName: 'my-project', targetDir: 'my-dir', cancelled: false });
 		vi.mocked(handleExistingDir).mockResolvedValue({ cancelled: false });
@@ -71,7 +71,7 @@ describe('index.js', () => {
 		await import('./index.js?full-flow');
 
 		await vi.waitFor(() => {
-			expect(showOutro).toHaveBeenCalled();
+			expect(installAndOptionallyStart).toHaveBeenCalled();
 		});
 
 		expect(scaffoldProject).toHaveBeenCalledWith(expect.stringContaining('my-dir'), 'my-project', 'my-pkg', 'vanilla', {
@@ -79,7 +79,7 @@ describe('index.js', () => {
 			target: 't',
 			password: 'p',
 		}, ['ex1']);
-		expect(showOutro).toHaveBeenCalledWith(expect.stringContaining('my-dir'), expect.any(String), true);
+		expect(installAndOptionallyStart).toHaveBeenCalledWith(expect.stringContaining('my-dir'), expect.any(String), true);
 	});
 
 	test('shows agent message if in agent environment and interactive', async () => {

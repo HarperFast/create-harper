@@ -12,9 +12,9 @@ import { getRunAppImmediately } from './lib/steps/getRunAppImmediately.js';
 import { getTemplate } from './lib/steps/getTemplate.js';
 import { handleExistingDir } from './lib/steps/handleExistingDir.js';
 import { helpAgents } from './lib/steps/helpAgents.js';
+import { installAndOptionallyStart } from './lib/steps/installAndOptionallyStart.js';
 import { parseArgv } from './lib/steps/parseArgv.js';
 import { scaffoldProject } from './lib/steps/scaffoldProject.js';
-import { showOutro } from './lib/steps/showOutro.js';
 
 init().catch((e) => {
 	console.error(e);
@@ -83,5 +83,5 @@ async function init() {
 	scaffoldProject(root, projectName, packageName, template, envVars, excludedFiles);
 
 	// Log out the next steps.
-	showOutro(root, pkgManager, immediate);
+	installAndOptionallyStart(root, pkgManager, immediate);
 }
