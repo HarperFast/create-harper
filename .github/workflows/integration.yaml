@@ -84,24 +84,24 @@ jobs:
           # Output check
           case ${{ matrix.pkg-manager }} in
             npm)
-              OUTPUT=$(npx . "$PROJECT_NAME" --template vanilla --no-interactive --overwrite)
+              OUTPUT=$(npx . "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install)
               echo "$OUTPUT" | grep -F "npm install" || (echo "Expected 'npm install' in output"; exit 1)
               ;;
             yarn)
-              OUTPUT=$(yarn node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite)
+              OUTPUT=$(yarn node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install)
               echo "$OUTPUT" | grep -F "yarn" || (echo "Expected 'yarn' in output"; exit 1)
               ;;
             pnpm)
-              OUTPUT=$(pnpm exec node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite)
+              OUTPUT=$(pnpm exec node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install)
               echo "$OUTPUT" | grep -F "pnpm install" || (echo "Expected 'pnpm install' in output"; exit 1)
               ;;
             bun)
-              OUTPUT=$(bun run index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite)
+              OUTPUT=$(bun run index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install)
               echo "$OUTPUT" | grep -F "bun install" || (echo "Expected 'bun install' in output"; exit 1)
               ;;
             deno)
               export npm_config_user_agent="deno/1.40.0"
-              OUTPUT=$(deno run -A index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite)
+              OUTPUT=$(deno run -A index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install)
               echo "$OUTPUT" | grep -F "deno task dev" || (echo "Expected 'deno task dev' in output"; exit 1)
               ;;
           esac
