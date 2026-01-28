@@ -79,7 +79,12 @@ describe('index.js', () => {
 			target: 't',
 			password: 'p',
 		}, ['ex1']);
-		expect(installAndOptionallyStart).toHaveBeenCalledWith(expect.stringContaining('my-dir'), expect.any(String), true);
+		expect(installAndOptionallyStart).toHaveBeenCalledWith(
+			expect.stringContaining('my-dir'),
+			expect.any(String),
+			true,
+			undefined,
+		);
 	});
 
 	test('shows agent message if in agent environment and interactive', async () => {
@@ -117,5 +122,29 @@ describe('index.js', () => {
 			expect(prompts.cancel).toHaveBeenCalled();
 		});
 		expect(prompts.cancel).toHaveBeenCalled();
+	});
+
+	test('passes skipInstall to installAndOptionallyStart', async () => {
+		vi.mocked(parseArgv).mockReturnValue({
+			targetDir: 'my-dir',
+			skipInstall: true,
+		});
+		const { getProjectName } = await import('./lib/steps/getProjectName.js');
+		vi.mocked(getProjectName).mockResolvedValue({ projectName: 'my-project', targetDir: 'my-dir', cancelled: false });
+
+		const { installAndOptionallyStart } = await import('./lib/steps/installAndOptionallyStart.js');
+
+		await import('./index.js?skip-install-test');
+
+		await vi.waitFor(() => {
+			expect(installAndOptionallyStart).toHaveBeenCalled();
+		});
+
+		expect(installAndOptionallyStart).toHaveBeenCalledWith(
+			expect.stringContaining('my-dir'),
+			expect.any(String),
+			expect.any(Boolean),
+			true,
+		);
 	});
 });

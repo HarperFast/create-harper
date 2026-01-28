@@ -83,5 +83,5 @@ async function init() {
 	scaffoldProject(root, projectName, packageName, template, envVars, excludedFiles);
 
 	// Log out the next steps.
-	installAndOptionallyStart(root, pkgManager, immediate);
+	installAndOptionallyStart(root, pkgManager, immediate, args.skipInstall);
 }

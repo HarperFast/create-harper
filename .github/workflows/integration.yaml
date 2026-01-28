@@ -51,22 +51,22 @@ jobs:
 
           case ${{ matrix.pkg-manager }} in
             npm)
-              npx . "$PROJECT_NAME" --template vanilla --no-interactive --overwrite
+              npx . "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install
               ;;
             yarn)
               corepack enable
-              yarn node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite
+              yarn node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install
               ;;
             pnpm)
-              pnpm exec node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite
+              pnpm exec node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install
               ;;
             bun)
-              bun run index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite
+              bun run index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install
               ;;
             deno)
               # Deno doesn't set npm_config_user_agent, so we set it manually
               export npm_config_user_agent="deno/1.40.0"
-              deno run -A index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite
+              deno run -A index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install
               ;;
           esac
 
