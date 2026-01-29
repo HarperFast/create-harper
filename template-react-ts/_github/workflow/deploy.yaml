@@ -30,4 +30,4 @@ jobs:
       - name: Run lint
         run: npm run lint
       - name: Build & deploy
-        run: npm run build-and-deploy
+        run: npm run deploy

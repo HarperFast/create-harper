@@ -9,12 +9,14 @@
 		"lint": "echo 'No lint implemented yet'",
 		"build": "vite build",
 		"preview": "vite preview",
-		"build-and-deploy": "npm run build && mkdir deploy && mv web deploy/ && cp -R deploy-template/* deploy/ && (cd deploy && npx -y dotenv-cli -- harperdb deploy . restart=rolling replicated=true)"
+		"deploy": "rm -Rf deploy && npm run build && mkdir deploy && mv web deploy/ && cp -R deploy-template/* deploy/ && dotenv -- npm run deploy:component && rm -Rf deploy",
+		"deploy:component": "(cd deploy && harperdb deploy_component . project=web restart=rolling replicated=true)"
 	},
 	"devDependencies": {
 		"@harperfast/vite-plugin": "^0.0.1",
 		"@vitejs/plugin-react": "^5.1.2",
-		"harperdb": "^4.7.16",
+		"dotenv-cli": "^11.0.0",
+		"harperdb": "^4.7.17",
 		"react": "^19.2.4",
 		"react-dom": "^19.2.4",
 		"vite": "npm:rolldown-vite@7.3.1"

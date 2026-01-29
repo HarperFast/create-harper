@@ -6,9 +6,11 @@
 	"scripts": {
 		"start": "harperdb run .",
 		"dev": "harperdb dev .",
-		"deploy": "npx -y dotenv-cli -- harperdb deploy . restart=rolling replicated=true"
+		"deploy": "dotenv -- npm run deploy:component",
+		"deploy:component": "harperdb deploy_component . restart=rolling replicated=true"
 	},
 	"devDependencies": {
+		"dotenv-cli": "^11.0.0",
 		"harperdb": "^4.7.15"
 	}
 }
