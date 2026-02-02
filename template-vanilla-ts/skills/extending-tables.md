@@ -54,3 +54,13 @@ export class ExamplePeople extends tables.ExamplePeople<ExamplePerson> {
 ## Important Note
 
 When you extend a table resource, HarperDB uses your custom class for all REST API interactions with that table. Make sure to call `super[method]` if you still want the default behavior to occur after your custom logic.
+
+Extended tables do not need to be `@export`ed in their schema .graphql.
+
+```graphql
+type ExamplePerson @table {
+	id: ID @primaryKey
+	name: String
+	tag: String @indexed
+}
+```

@@ -21,12 +21,14 @@ To add tables to a Harper database, follow these guidelines:
 
 ### Example
 
-In `schemas/ExampleTable.graphql`:
+In `schemas/ExamplePerson.graphql`:
 
 ```graphql
-type ExampleTable @table @export {
+type ExamplePerson @table @export {
 	id: ID @primaryKey
 	name: String
-	email: String @indexed
+	tag: String @indexed
 }
 ```
+
+Tip: if you are going to [extend the table](./extending-tables.md) in your resources, then do not `@export` the table from the schema.
