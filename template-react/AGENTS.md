@@ -15,4 +15,4 @@ This repository contains "skills" that guide AI agents in developing Harper appl
 - [TypeScript Type Stripping](skills/typescript-type-stripping.md): Using TypeScript directly without build tools via Node.js Type Stripping.
 - [Handling Binary Data](skills/handling-binary-data.md): How to store and serve binary data like images or MP3s.
 - [Serving Web Content](skills/serving-web-content): Two ways to serve web content from a Harper application.
-- [Checking Authentication](skills/checking-authentication.md): How to use `this.getCurrentUser()` to verify user identity and roles.
+- [Checking Authentication](skills/checking-authentication.md): How to use sessions to verify user identity and roles.
