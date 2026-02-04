@@ -4,7 +4,7 @@ This repository contains "skills" that guide AI agents in developing Harper appl
 
 ## Available Skills
 
-- [Adding Tables](skills/adding-tables.md): Learn how to define schemas and enable automatic REST APIs for your database tables.
+- [Adding Tables with Schemas](skills/adding-tables-with-schemas.md): Learn how to define schemas and enable automatic REST APIs for your database tables with schema .graphql files in Harper.
 - [Automatic REST APIs](skills/automatic-rest-apis.md): Details on the CRUD endpoints automatically generated for exported tables.
 - [Querying REST APIs](skills/querying-rest-apis.md): How to use filters, operators, sorting, and pagination in REST requests.
 - [Programmatic Table Requests](skills/programmatic-table-requests.md): How to use filters, operators, sorting, and pagination in programmatic table requests.

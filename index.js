@@ -5,7 +5,6 @@ import { helpMessage } from './lib/constants/helpMessage.js';
 import { pkgFromUserAgent } from './lib/pkg/pkgFromUserAgent.js';
 import { checkForUpdate } from './lib/steps/checkForUpdate.js';
 import { getEnvVars } from './lib/steps/getEnvVars.js';
-import { getExamples } from './lib/steps/getExamples.js';
 import { getPackageName } from './lib/steps/getPackageName.js';
 import { getProjectName } from './lib/steps/getProjectName.js';
 import { getRunAppImmediately } from './lib/steps/getRunAppImmediately.js';
@@ -60,11 +59,6 @@ async function init() {
 	if (templateResult.cancelled) { return cancel(); }
 	const { template } = templateResult;
 
-	// Choose which examples to include
-	const examplesResult = await getExamples(template, interactive);
-	if (examplesResult.cancelled) { return cancel(); }
-	const { excludedFiles } = examplesResult;
-
 	// Get environment variables for .env file
 	const envVarsResult = await getEnvVars(interactive, template, args.deploymentUsername, args.deploymentURL);
 	if (envVarsResult.cancelled) { return cancel(); }
@@ -80,7 +74,7 @@ async function init() {
 	// Write out the contents based on all prior steps.
 	const cwd = process.cwd();
 	const root = path.join(cwd, targetDir);
-	scaffoldProject(root, projectName, packageName, template, envVars, excludedFiles);
+	scaffoldProject(root, projectName, packageName, template, envVars);
 
 	// Log out the next steps.
 	installAndOptionallyStart(root, pkgManager, immediate, args.skipInstall);

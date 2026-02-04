@@ -11,14 +11,6 @@ import { copyDir } from '../lib/fs/copyDir.js';
 			'template-vanilla',
 			'template-vanilla-ts',
 		],
-		'js': [
-			'template-react',
-			'template-vanilla',
-		],
-		'ts': [
-			'template-react-ts',
-			'template-vanilla-ts',
-		],
 	};
 	for (const key in copiesToMake) {
 		const fromShared = path.resolve(import.meta.dirname, key);

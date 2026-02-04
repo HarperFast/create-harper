@@ -1,6 +1,0 @@
-## This table is @export'ed, which means API endpoints are stood up for it automatically.
-type ExampleCat @table @export {
-	id: ID @primaryKey # Here we define primary key (must be one)
-	name: String # we can define any other attributes here
-	tag: String @indexed # we can specify any attributes that should be indexed
-}
