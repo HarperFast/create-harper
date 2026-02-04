@@ -14,7 +14,6 @@ vi.mock('./lib/steps/getProjectName.js');
 vi.mock('./lib/steps/handleExistingDir.js');
 vi.mock('./lib/steps/getPackageName.js');
 vi.mock('./lib/steps/getTemplate.js');
-vi.mock('./lib/steps/getExamples.js');
 vi.mock('./lib/steps/getRunAppImmediately.js');
 vi.mock('./lib/steps/getEnvVars.js');
 vi.mock('./lib/steps/checkForUpdate.js');
@@ -61,7 +60,6 @@ describe('index.js', () => {
 		const { handleExistingDir } = await import('./lib/steps/handleExistingDir.js');
 		const { getPackageName } = await import('./lib/steps/getPackageName.js');
 		const { getTemplate } = await import('./lib/steps/getTemplate.js');
-		const { getExamples } = await import('./lib/steps/getExamples.js');
 		const { getRunAppImmediately } = await import('./lib/steps/getRunAppImmediately.js');
 		const { getEnvVars } = await import('./lib/steps/getEnvVars.js');
 		const { scaffoldProject } = await import('./lib/steps/scaffoldProject.js');
@@ -71,7 +69,6 @@ describe('index.js', () => {
 		vi.mocked(handleExistingDir).mockResolvedValue({ cancelled: false });
 		vi.mocked(getPackageName).mockResolvedValue({ packageName: 'my-pkg', cancelled: false });
 		vi.mocked(getTemplate).mockResolvedValue({ template: 'vanilla', cancelled: false });
-		vi.mocked(getExamples).mockResolvedValue({ excludedFiles: ['ex1'], cancelled: false });
 		vi.mocked(getRunAppImmediately).mockResolvedValue({ immediate: true, cancelled: false });
 		vi.mocked(getEnvVars).mockResolvedValue({
 			envVars: { username: 'u', target: 't', password: 'p' },
@@ -88,7 +85,7 @@ describe('index.js', () => {
 			username: 'u',
 			target: 't',
 			password: 'p',
-		}, ['ex1']);
+		});
 		expect(installAndOptionallyStart).toHaveBeenCalledWith(
 			expect.stringContaining('my-dir'),
 			expect.any(String),
@@ -181,30 +178,12 @@ describe('index.js', () => {
 		});
 	});
 
-	test('cancels if examples selection is cancelled', async () => {
-		const { getProjectName } = await import('./lib/steps/getProjectName.js');
-		const { getTemplate } = await import('./lib/steps/getTemplate.js');
-		const { getExamples } = await import('./lib/steps/getExamples.js');
-		vi.mocked(getProjectName).mockResolvedValue({ projectName: 'p', targetDir: 'd', cancelled: false });
-		vi.mocked(getTemplate).mockResolvedValue({ template: 't', cancelled: false });
-		vi.mocked(getExamples).mockResolvedValue({ cancelled: true });
-		vi.mocked(parseArgv).mockReturnValue({});
-		const prompts = await import('@clack/prompts');
-
-		await import('./index.js?cancel-examples');
-		await vi.waitFor(() => {
-			expect(prompts.cancel).toHaveBeenCalled();
-		});
-	});
-
 	test('cancels if env vars selection is cancelled', async () => {
 		const { getProjectName } = await import('./lib/steps/getProjectName.js');
 		const { getTemplate } = await import('./lib/steps/getTemplate.js');
-		const { getExamples } = await import('./lib/steps/getExamples.js');
 		const { getEnvVars } = await import('./lib/steps/getEnvVars.js');
 		vi.mocked(getProjectName).mockResolvedValue({ projectName: 'p', targetDir: 'd', cancelled: false });
 		vi.mocked(getTemplate).mockResolvedValue({ template: 't', cancelled: false });
-		vi.mocked(getExamples).mockResolvedValue({ excludedFiles: [], cancelled: false });
 		vi.mocked(getEnvVars).mockResolvedValue({ cancelled: true });
 		vi.mocked(parseArgv).mockReturnValue({});
 		const prompts = await import('@clack/prompts');
@@ -246,7 +225,6 @@ describe('index.js', () => {
 		const { handleExistingDir } = await import('./lib/steps/handleExistingDir.js');
 		const { getPackageName } = await import('./lib/steps/getPackageName.js');
 		const { getTemplate } = await import('./lib/steps/getTemplate.js');
-		const { getExamples } = await import('./lib/steps/getExamples.js');
 		const { getRunAppImmediately } = await import('./lib/steps/getRunAppImmediately.js');
 		const { getEnvVars } = await import('./lib/steps/getEnvVars.js');
 
@@ -254,7 +232,6 @@ describe('index.js', () => {
 		vi.mocked(handleExistingDir).mockResolvedValue({ cancelled: false });
 		vi.mocked(getPackageName).mockResolvedValue({ packageName: 'my-pkg', cancelled: false });
 		vi.mocked(getTemplate).mockResolvedValue({ template: 'vanilla', cancelled: false });
-		vi.mocked(getExamples).mockResolvedValue({ excludedFiles: [], cancelled: false });
 		vi.mocked(getRunAppImmediately).mockResolvedValue({ immediate: true, cancelled: false });
 		vi.mocked(getEnvVars).mockResolvedValue({ envVars: {}, cancelled: false });
 
@@ -282,7 +259,6 @@ describe('index.js', () => {
 		const { handleExistingDir } = await import('./lib/steps/handleExistingDir.js');
 		const { getPackageName } = await import('./lib/steps/getPackageName.js');
 		const { getTemplate } = await import('./lib/steps/getTemplate.js');
-		const { getExamples } = await import('./lib/steps/getExamples.js');
 		const { getRunAppImmediately } = await import('./lib/steps/getRunAppImmediately.js');
 		const { getEnvVars } = await import('./lib/steps/getEnvVars.js');
 
@@ -290,7 +266,6 @@ describe('index.js', () => {
 		vi.mocked(handleExistingDir).mockResolvedValue({ cancelled: false });
 		vi.mocked(getPackageName).mockResolvedValue({ packageName: 'my-pkg', cancelled: false });
 		vi.mocked(getTemplate).mockResolvedValue({ template: 'vanilla', cancelled: false });
-		vi.mocked(getExamples).mockResolvedValue({ excludedFiles: [], cancelled: false });
 		vi.mocked(getRunAppImmediately).mockResolvedValue({ immediate: true, cancelled: false });
 		vi.mocked(getEnvVars).mockResolvedValue({ envVars: {}, cancelled: false });
 
