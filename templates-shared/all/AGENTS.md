@@ -16,3 +16,7 @@ This repository contains "skills" that guide AI agents in developing Harper appl
 - [Handling Binary Data](skills/handling-binary-data.md): How to store and serve binary data like images or MP3s.
 - [Serving Web Content](skills/serving-web-content): Two ways to serve web content from a Harper application.
 - [Checking Authentication](skills/checking-authentication.md): How to use sessions to verify user identity and roles.
+- [Caching](skills/caching.md): How caching is defined and implemented in Harper applications.
+- [JWT Authentication](skills/jwt-authentication.md): How Harper issues and handles JWT authentication and RBAC for secure operations.
+- [Using Blobs](skills/using-blob-datatype.md): How to store and retrieve large data in HarperDB.
+- [Vector Indexing](skills/vector-indexing.md): How to define and use vector indexes for efficient similarity search.
