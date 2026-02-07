@@ -81,6 +81,7 @@ class MyAPI extends Resource {
   }
 }
 ```
+See [Real Time Apps](real-time-apps.md) for more details.
 
 ---
 
