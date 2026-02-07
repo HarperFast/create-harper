@@ -77,9 +77,9 @@ The blob size may not be immediately available when streaming:
 
 ```js
 if (blob.size === undefined) {
-  blob.on("size", size => {
-    console.log("Blob size:", size)
-  })
+	blob.on("size", size => {
+		console.log("Blob size:", size)
+	})
 }
 ```
 
@@ -102,7 +102,7 @@ Handle streaming errors by attaching an error listener:
 
 ```js
 blob.on("error", () => {
-  MyTable.invalidate("my-record")
+	MyTable.invalidate("my-record")
 })
 ```
 
@@ -113,6 +113,12 @@ This prevents partially written blobs from being used.
 ## Automatic Coercion
 
 When a field is defined as `Blob`, assigning a string or buffer automatically converts it into a blob when using `put`, `patch`, or `publish`.
+
+---
+
+## Related Skill
+
+- [Handling Binary Data with Blobs](handling-binary-data.md) How to store and serve binary data like images or MP3s using the Blob data type.
 
 ---
 
