@@ -36,10 +36,11 @@ type Product @table {
 
 ### Search Vectors with sort
 
-Once defined, vector indexes can be used by specifying a `sort` configuration with a target vector.
+Once defined, vector indexes can be used by specifying a `sort` configuration with a target vector. To view the similarity of a result to a given query vector, use the `$distance` attribute in the `select` clause.
 
 ```js
 const results = Product.search({
+  select: ['name', 'description', 'price', '$distance'],
   sort: {
     attribute: 'textEmbeddings',
     target: searchVector
@@ -53,6 +54,7 @@ const results = Product.search({
 - `searchVector` is the embedding to compare against
 - Results are ordered by similarity
 - Vector search can be combined with filters and limits
+- The `$distance` attribute in the `select` (optional) returns the distance between the result and the query vector
 
 ### Search Vectors limited by distance
 
