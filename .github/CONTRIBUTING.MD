@@ -17,7 +17,7 @@ npm install
 ## Development workflow
 
 - Link the package: `npm link`
-- Run it: `npm create harper`
+- Run it: `create-harper`
 - Lint: `npm run lint:fix`
 - Format: `npm run format:fix`
 
