@@ -15,10 +15,11 @@
 		"index.js",
 		"lib/",
 		"!lib/**/*.test.js",
-		"template-react/",
+		"template-early-hints/",
 		"template-react-ts/",
-		"template-vanilla/",
-		"template-vanilla-ts/"
+		"template-react/",
+		"template-vanilla-ts/",
+		"template-vanilla/"
 	],
 	"scripts": {
 		"commitlint": "commitlint --edit",
