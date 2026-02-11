@@ -1,0 +1,3 @@
+schema: schema.graphql
+include: node_modules/harperdb/schema.graphql
+documents: '**/*.graphql'
