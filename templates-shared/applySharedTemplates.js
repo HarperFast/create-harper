@@ -6,6 +6,7 @@ import { copyDir } from '../lib/fs/copyDir.js';
 (async function() {
 	const copiesToMake = {
 		'all': [
+			'template-early-hints',
 			'template-react',
 			'template-react-ts',
 			'template-vanilla',
