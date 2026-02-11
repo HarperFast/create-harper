@@ -256,14 +256,13 @@ static loadAsInstance = false;
 ### Suggested client flow (high-level)
 
 1. **Sign in (token flow)**
-    - Call `IssueTokens.post` with `{ username, password }` or `IssueTokens.get` with an existing Authorization token.
-    - Receive `{ jwt, refreshToken }`
+    - POST /IssueTokens/ with a body of `{ "username": "your username", "password": "your password" }` or GET /IssueTokens/ with an existing Authorization token.
+    - Receive `{ jwt, refreshToken }` in the response
 2. **Call protected APIs**
-    - Send the JWT with each request (as your auth mechanism expects)
+    - Send the JWT with each request in the Authorization header (as your auth mechanism expects)
 3. **JWT expires**
-    - Call `RefreshJWT.post` with `{ refreshToken }`
-    - Receive `{ jwt }` and continue
-
+    - POST /RefreshJWT/ with a body of `{ "refreshToken": "your refresh token" }`.
+    - Receive `{ jwt }` in the response and continue
 ## Quick checklist
 
 - [ ] Public endpoints explicitly `allowRead`/`allowCreate` as needed.
