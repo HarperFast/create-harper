@@ -61,6 +61,7 @@
 		"@vitest/coverage-v8": "^4.0.17",
 		"conventional-changelog-conventionalcommits": "^9.1.0",
 		"dprint": "^0.51.1",
+		"harperdb": "^4.7.19",
 		"husky": "^9.1.7",
 		"oxlint": "^1.38.0",
 		"semantic-release": "^25.0.2",
