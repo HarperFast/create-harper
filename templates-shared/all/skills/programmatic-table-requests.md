@@ -1,10 +1,10 @@
-# Programmatic Requests with HarperDB Tables
+# Programmatic Requests with Harper Tables
 
-In HarperDB, you can interact with your database tables programmatically using the global `tables` object. Each table defined in your schema is available as a property on this object.
+In Harper, you can interact with your database tables programmatically using the global `tables` object. Each table defined in your schema is available as a property on this object.
 
 ## Basic Usage
 
-The `tables` object provides a direct way to perform CRUD operations from within your HarperDB resources or scripts.
+The `tables` object provides a direct way to perform CRUD operations from within your Harper resources or scripts.
 
 ```typescript
 const track = await tables.ExamplePeople.get(id) as ExamplePerson;

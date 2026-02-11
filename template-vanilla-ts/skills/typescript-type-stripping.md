@@ -1,16 +1,16 @@
 # TypeScript Type Stripping
 
-HarperDB supports using TypeScript directly without any additional build tools (like `tsc` or `esbuild`) by leveraging Node.js's native Type Stripping capability. This allows you to write `.ts` files for your Custom Resources and have them run directly in HarperDB.
+Harper supports using TypeScript directly without any additional build tools (like `tsc` or `esbuild`) by leveraging Node.js's native Type Stripping capability. This allows you to write `.ts` files for your Custom Resources and have them run directly in Harper.
 
 ## Requirements
 
 - **Node.js Version**: You must be running a version of Node.js that supports type stripping (Node.js v22.6.0 or higher).
-- **No Experimental Flags**: When running on supported Node.js versions, HarperDB can automatically handle type stripping for your resource files.
+- **No Experimental Flags**: When running on supported Node.js versions, Harper can automatically handle type stripping for your resource files.
 
 ## Benefits
 
 - **Faster Development**: No need to wait for a build step or manage complex build pipelines.
-- **Simplified Tooling**: You don't need to install or configure `ts-node`, `tsx`, or other TypeScript execution engines for your HarperDB resources.
+- **Simplified Tooling**: You don't need to install or configure `ts-node`, `tsx`, or other TypeScript execution engines for your Harper resources.
 - **Native Performance**: Leverages Node.js's built-in support for stripping types, which is highly efficient.
 
 ## Usage
@@ -44,4 +44,4 @@ jsResource:
   files: 'resources/*.ts'
 ```
 
-When HarperDB starts, it will detect the `.ts` files and, if running on a compatible Node.js version, will execute them using type stripping.
+When Harper starts, it will detect the `.ts` files and, if running on a compatible Node.js version, will execute them using type stripping.

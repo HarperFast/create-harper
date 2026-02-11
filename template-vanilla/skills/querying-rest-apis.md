@@ -1,6 +1,6 @@
-# Querying through REST APIs in HarperDB
+# Querying through REST APIs in Harper
 
-HarperDB's automatic REST APIs support powerful querying capabilities directly through URL query parameters. This allows you to filter, sort, paginate, and join data without writing complex queries.
+Harper's automatic REST APIs support powerful querying capabilities directly through URL query parameters. This allows you to filter, sort, paginate, and join data without writing complex queries.
 
 ## Basic Filtering
 

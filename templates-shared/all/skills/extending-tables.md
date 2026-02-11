@@ -1,6 +1,6 @@
-# Extending Table Resources in HarperDB
+# Extending Table Resources in Harper
 
-In HarperDB, when you define a table in GraphQL and export it, you can extend the automatically generated resource class to add custom logic, validation, or hooks to standard CRUD operations.
+In Harper, when you define a table in GraphQL and export it, you can extend the automatically generated resource class to add custom logic, validation, or hooks to standard CRUD operations.
 
 ## How to Extend a Table Resource
 
@@ -53,7 +53,7 @@ export class ExamplePeople extends tables.ExamplePeople<ExamplePerson> {
 
 ## Important Note
 
-When you extend a table resource, HarperDB uses your custom class for all REST API interactions with that table. Make sure to call `super[method]` if you still want the default behavior to occur after your custom logic.
+When you extend a table resource, Harper uses your custom class for all REST API interactions with that table. Make sure to call `super[method]` if you still want the default behavior to occur after your custom logic.
 
 Extended tables do not need to be `@export`ed in their schema .graphql.
 
