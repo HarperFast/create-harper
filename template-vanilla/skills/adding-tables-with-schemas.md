@@ -1,4 +1,4 @@
-# Adding Tables to HarperDB
+# Adding Tables to Harper
 
 To add tables to a Harper database, follow these guidelines:
 
@@ -8,7 +8,7 @@ To add tables to a Harper database, follow these guidelines:
 
 3. **Defining Relationships**: You can link tables together using the `@relationship` directive. For more details, see the [Defining Relationships](defining-relationships.md) skill.
 
-4. **Automatic REST APIs**: If you add `@table @export` to a schema type, HarperDB automatically sets up REST APIs for basic CRUD operations against that table. For a detailed list of available endpoints and how to use them, see the [Automatic REST APIs](automatic-rest-apis.md) skill.
+4. **Automatic APIs**: If you add `@table @export` to a schema type, Harper automatically sets up REST and WebSocket APIs for basic CRUD operations against that table. For a detailed list of available endpoints and how to use them, see the [Automatic REST APIs](automatic-apis.md) skill.
 
    - `GET /{TableName}`: Describes the schema itself.
    - `GET /{TableName}/`: Lists all records (supports filtering, sorting, and pagination via query parameters). See the [Querying REST APIs](querying-rest-apis.md) skill for details.

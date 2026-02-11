@@ -1,6 +1,6 @@
-# Defining Relationships in HarperDB
+# Defining Relationships in Harper
 
-HarperDB allows you to define relationships between tables using the `@relationship` directive in your GraphQL schema. This enables powerful features like automatic joins when querying through REST APIs.
+Harper allows you to define relationships between tables using the `@relationship` directive in your GraphQL schema. This enables powerful features like automatic joins when querying through REST APIs.
 
 ## The `@relationship` Directive
 
@@ -67,5 +67,5 @@ This returns authors with their names and a list of their books (only the titles
 ## Benefits of `@relationship`
 
 - **Simplified Queries**: No need for complex manual joins in your code.
-- **Efficient Data Fetching**: HarperDB optimizes relationship lookups.
+- **Efficient Data Fetching**: Harper optimizes relationship lookups.
 - **Improved API Discoverability**: Related data structures are clearly defined in your schema.

@@ -1,6 +1,6 @@
-# Handling Binary Data in HarperDB
+# Handling Binary Data in Harper
 
-When working with binary data (such as images or audio files) in HarperDB, you often receive this data as base64-encoded strings through JSON REST APIs. To store this data efficiently in a `Blob` field, you should convert it to a `Buffer`.
+When working with binary data (such as images or audio files) in Harper, you often receive this data as base64-encoded strings through JSON REST APIs. To store this data efficiently in a `Blob` field, you should convert it to a `Buffer`.
 
 ## Storing Base64 Strings as Buffers
 
@@ -63,5 +63,5 @@ export class TrackResource extends Resource {
 ## Why Use Blobs?
 
 - **Efficiency**: `Blob` fields are optimized for storing binary data. Buffers are the standard way to handle binary data in Node.js.
-- **Compatibility**: Many HarperDB features and external libraries expect binary data to be in `Buffer` or `Uint8Array` format.
+- **Compatibility**: Many Harper features and external libraries expect binary data to be in `Buffer` or `Uint8Array` format.
 - **Storage**: Storing data as binary is more compact than storing it as a base64-encoded string.

@@ -1,8 +1,8 @@
-# Checking Authentication and Sessions in this app (HarperDB Resources)
+# Checking Authentication and Sessions in this app (Harper Resources)
 
-This project uses HarperDB Resource classes with cookie-backed sessions to enforce authentication and authorization. Below are the concrete patterns used across resources like `resources/me.ts`, `resources/signIn.ts`, `resources/signOut.ts`, and protected endpoints such as `resources/downloadAlbumArtwork.ts`.
+This project uses Harper Resource classes with cookie-backed sessions to enforce authentication and authorization. Below are the concrete patterns used across resources like `resources/me.ts`, `resources/signIn.ts`, `resources/signOut.ts`, and protected endpoints such as `resources/downloadAlbumArtwork.ts`.
 
-Important: To actually enforce sessions (even on localhost), HarperDB must not auto-authorize the local loopback as the superuser. Ensure the following in your HarperDB config (see `~/hdb/harperdb-config.yaml`):
+Important: To actually enforce sessions (even on localhost), Harper must not auto-authorize the local loopback as the superuser. Ensure the following in your Harper config (see `~/hdb/harperdb-config.yaml`):
 
 ```yaml
 authentication:
@@ -174,7 +174,7 @@ export function ensureSuperUser(user: User | undefined) {
 
 ## Client considerations
 
-- Sessions are cookie-based; the server handles setting and reading the cookie via HarperDB. If you make cross-origin requests, ensure the appropriate `credentials` mode and CORS settings.
+- Sessions are cookie-based; the server handles setting and reading the cookie via Harper. If you make cross-origin requests, ensure the appropriate `credentials` mode and CORS settings.
 - If developing locally, double-check the server config still has `authentication.authorizeLocal: false` to avoid accidental superuser bypass.
 
 ## Quick checklist
@@ -183,4 +183,4 @@ export function ensureSuperUser(user: User | undefined) {
 - [ ] Sign-in uses `context.login` and handles 400/403 correctly.
 - [ ] Protected routes call `ensureSuperUser(this.getCurrentUser())` (or another role check) before doing work.
 - [ ] Sign-out verifies a session and deletes it.
-- [ ] `authentication.authorizeLocal` is `false` and `enableSessions` is `true` in HarperDB config.
+- [ ] `authentication.authorizeLocal` is `false` and `enableSessions` is `true` in Harper config.

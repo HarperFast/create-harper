@@ -1,8 +1,8 @@
-# Custom Resources in HarperDB
+# Custom Resources in Harper
 
 Custom Resources allow you to define your own REST endpoints with custom logic by writing JavaScript or TypeScript code. This is useful when the automatic CRUD operations provided by `@table @export` are not enough.
 
-HarperDB supports [TypeScript Type Stripping](typescript-type-stripping.md), allowing you to use TypeScript directly without additional build tools on supported Node.js versions.
+Harper supports [TypeScript Type Stripping](typescript-type-stripping.md), allowing you to use TypeScript directly without additional build tools on supported Node.js versions.
 
 ## Defining a Custom Resource
 
@@ -21,7 +21,7 @@ interface GreetingRecord {
 }
 
 export class Greeting extends Resource<GreetingRecord> {
-	// Set to false if you want HarperDB to manage the instance lifecycle
+	// Set to false if you want Harper to manage the instance lifecycle
 	static loadAsInstance = false;
 
 	async get(target?: RequestTargetOrId): Promise<GreetingRecord> {
@@ -79,4 +79,4 @@ Once defined and configured, your resource will be available at a REST endpoint 
 
 ### Case Sensitivity
 
-Paths in HarperDB are **case-sensitive**. A resource class named `MyResource` will be accessible only at `/MyResource/`, not `/myresource/`.
+Paths in Harper are **case-sensitive**. A resource class named `MyResource` will be accessible only at `/MyResource/`, not `/myresource/`.

@@ -1,10 +1,14 @@
-# Real-time Applications in HarperDB
+# Real-time Applications in Harper
 
-HarperDB provides built-in support for real-time data synchronization using WebSockets and a Pub/Sub mechanism. This allows clients to receive immediate updates when data changes in the database.
+Harper provides built-in support for real-time data synchronization using WebSockets and a Pub/Sub mechanism. This allows clients to receive immediate updates when data changes in the database.
+
+## Automatic WebSockets
+
+For many use cases, the [Automatic APIs](automatic-apis.md) provided by Harper are more than enough. When you `@export` a table, Harper automatically provides a WebSocket endpoint that publishes events whenever data in that table is updated.
 
 ## Implementing a WebSocket Resource
 
-To handle WebSocket connections, implement the `connect` method in your custom resource class.
+Customizing resources by implementing a `connect` method is only necessary when you want to come up with a more specific back-and-forth or custom message handling. To handle WebSocket connections, implement the `connect` method in your custom resource class.
 
 ### Example: `resources/exampleSocket.ts`
 
@@ -68,4 +72,4 @@ socket.send(JSON.stringify({ type: 'ping' }));
 
 - **Automatic Table Subscriptions**: Easily stream changes from any database table.
 - **Bi-directional Communication**: Send and receive messages in real-time.
-- **Scalable Pub/Sub**: HarperDB handles the efficient distribution of messages to subscribers.
+- **Scalable Pub/Sub**: Harper handles the efficient distribution of messages to subscribers.
