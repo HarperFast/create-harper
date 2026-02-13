@@ -4,6 +4,10 @@ Custom Resources allow you to define your own REST endpoints with custom logic b
 
 Harper supports [TypeScript Type Stripping](typescript-type-stripping.md), allowing you to use TypeScript directly without additional build tools on supported Node.js versions.
 
+## Do you need a custom resource?
+
+Exported tables have [automatic APIs](./automatic-apis.md) as a part of them. These APIs may be enough for what you need. Take a look at [extendings tables](./extending-tables.md) to learn more about resources with a backing table.
+
 ## Defining a Custom Resource
 
 To create a custom resource:

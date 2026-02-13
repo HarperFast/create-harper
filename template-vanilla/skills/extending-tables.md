@@ -2,6 +2,10 @@
 
 In Harper, when you define a table in GraphQL and export it, you can extend the automatically generated resource class to add custom logic, validation, or hooks to standard CRUD operations.
 
+## Do you need to extend tables?
+
+Exported tables have [automatic APIs](./automatic-apis.md) as a part of them. These APIs may be sufficient for what you need.
+
 ## How to Extend a Table Resource
 
 1. Identify the table you want to extend (e.g., `ExamplePeople`).

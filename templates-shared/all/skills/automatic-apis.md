@@ -47,3 +47,7 @@ This is the easiest way to add real-time capabilities to your application. For m
 The `GET /{TableName}/` and `DELETE /{TableName}/` endpoints can be filtered using query parameters. While basic equality filters are straightforward, Harper supports a rich set of operators, sorting, and pagination.
 
 For a comprehensive guide on advanced querying, see the [Querying REST APIs](querying-rest-apis.md) skill.
+
+## Customizing Resources
+
+If the automatic APIs don't behave how you need, then you can look to [customize the resources](./custom-resources.md).
