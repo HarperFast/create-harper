@@ -24,15 +24,72 @@ TypeScript is supported at runtime in Node.js through [type stripping](https://n
 
 ### Define Your Schema
 
-The [schemas/examplePeople.graphql](./schemas/examplePeople.graphql) is an example table schema definition. This is the main starting point for defining your database schema, specifying which tables you want and what attributes/fields they should have.
+1. Create a new yourTableName.graphql file in the [schemas](./schemas) directory.
+2. Craft your schema by hand.
+3. Save your changes.
 
-Open your [schemas/examplePeople.graphql](./schemas/examplePeople.graphql) to take a look at an example schema. You can add as many table definitions to a single schema file as you want. You can also create one file per schema.
-
-These schemas are the heart of a great Harper app. This is the main starting point for defining your database schema, specifying which tables you want and what attributes/fields they should have. REST endpoints will get stood up for any table that you `@export`.
+These schemas are the heart of a great Harper app, specifying which tables you want and what attributes/fields they should have. Any table you `@export` stands up [REST endpoints automatically](./skills/automatic-rest-apis.md).
 
 ### Add Custom Endpoints
 
-The [resources/greeting.ts](./resources/greeting.ts) provides a template for defining TypeScript resource classes, for customized application logic in your endpoints.
+1. Create a new greeting.ts file in the [resources](./resources) directory.
+
+2. Customize your resource:
+
+   ```typescript
+   import {
+   	type RecordObject,
+   	type RequestTargetOrId,
+   	Resource,
+   } from 'harperdb';
+
+   interface GreetingRecord {
+   	greeting: string;
+   }
+
+   export class Greeting extends Resource<GreetingRecord> {
+   	static loadAsInstance = false;
+
+   	async post(
+   		target: RequestTargetOrId,
+   		newRecord: Partial<GreetingRecord & RecordObject>,
+   	): Promise<GreetingRecord> {
+   		// By default, only super users can access these endpoints.
+   		return { greeting: 'Greetings, post!' };
+   	}
+
+   	async get(target?: RequestTargetOrId): Promise<GreetingRecord> {
+   		// But if we want anyone to be able to access it, we can turn off the permission checks!
+   		target.checkPermission = false;
+   		return { greeting: 'Greetings, get! ' + process.version };
+   	}
+
+   	async put(
+   		target: RequestTargetOrId,
+   		record: GreetingRecord & RecordObject,
+   	): Promise<GreetingRecord> {
+   		target.checkPermission = false;
+   		if (this.getCurrentUser()?.name?.includes('Coffee')) {
+   			// You can add your own authorization guards, of course.
+   			return new Response('Coffee? COFFEE?!', { status: 418 });
+   		}
+   		return { greeting: 'Sssssssssssssss!' };
+   	}
+
+   	async patch(
+   		target: RequestTargetOrId,
+   		record: Partial<GreetingRecord & RecordObject>,
+   	): Promise<GreetingRecord> {
+   		return { greeting: 'We can make this work!' };
+   	}
+
+   	async delete(target: RequestTargetOrId): Promise<boolean> {
+   		return true;
+   	}
+   }
+   ```
+
+3. Save your changes.
 
 ### View Your Website
 
@@ -60,7 +117,7 @@ Take a look at the [default configuration](./config.yaml), which specifies how f
 
 When you are ready, head to [https://fabric.harper.fast/](https://fabric.harper.fast/), log in to your account, and create a cluster.
 
-Make sure you've configured your [.env](./.env) file with your secure cluster credentials. Don't commit this file to source control!
+Come back here and configure your [.env](./.env) file with your secure cluster credentials. Don't commit this file to source control!
 
 Then you can deploy your app to your cluster:
 

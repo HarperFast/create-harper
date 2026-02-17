@@ -27,17 +27,25 @@ import { getOwnVersion } from '../lib/pkg/packageInformation.js';
 						.replace(/"scripts":[\s\S]+?\t}/, '"scripts": {}');
 				} else if (targetPath.endsWith('README.md')) {
 					return sourceContent
-						// Give a more accurate greeting.
 						.replace(
 							'Your new app is now ready for development!',
 							'Your new app is now deployed and running on Harper Fabric!',
 						)
-						// Add a link to the New Table button when working on schemas.
 						.replace(
-							'### Define Your Schema',
-							`### Define Your Schema
-
-Tap [+ New Table](./schemas/examplePeople.graphql?ShowNewTableModal=true) when viewing a schema file, and you'll be guided through the available options.`,
+							'1. Create a new yourTableName.graphql file in the [schemas](./schemas) directory.',
+							'1. Create a new [yourTableName.graphql](./schemas?ShowAddDirectoryOrFileModalType=file) file in the [schemas](./schemas) directory.',
+						)
+						.replace(
+							'2. Craft your schema by hand.',
+							'2. Craft your schema by hand or tap "+ New Table" in the action bar for a bit of guidance.',
+						)
+						.replace(
+							/\. Save your changes./ig,
+							'3. Save your changes.\n4. Tap "Restart Cluster", and your changes will be live!',
+						)
+						.replace(
+							/1\. Create a new greeting\.([tj])s file in the \[resources]\(\.\/resources\) directory./,
+							'1. Create a new [greeting.$1s](./resources?ShowAddDirectoryOrFileModalType=file) file in the [resources](./resources) directory.',
 						)
 						.replace(/database schema/ig, '[database schema](./databases)')
 						.replace(
