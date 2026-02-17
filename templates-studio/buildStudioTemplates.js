@@ -68,6 +68,7 @@ see what different users will be able to access through your API.`,
 			emptyDir(path.resolve(toTemplate, '.github'));
 			renameFile(path.resolve(toTemplate, '_github'), path.resolve(toTemplate, '.github'));
 		}
+		renameFile(path.resolve(toTemplate, '_nvmrc'), path.resolve(toTemplate, '.nvmrc'));
 		renameFile(path.resolve(toTemplate, '_gitignore'), path.resolve(toTemplate, '.gitignore'));
 		renameFile(path.resolve(toTemplate, '_aiignore'), path.resolve(toTemplate, '.aiignore'));
 		writeFile(path.resolve(toTemplate, '.npmignore'), '!.gitignore\n.npmignore\n');
