@@ -116,7 +116,7 @@
       class="sans"
       x="0"
       y="62"
-      font-size="96"
+      font-size="128"
       font-weight="800"
       letter-spacing="-1.5"
       fill="url(#harperGrad)"
@@ -145,10 +145,10 @@
         font-size="22"
         fill="#e6f7ff"
         opacity="0.96"
-      >$ npm create harper</text>
+      >$ npm create harper@latest</text>
 
       <!-- blinking cursor -->
-      <rect x="350" y="17" width="3" height="24" fill="#e6f7ff" opacity="0.55">
+      <rect x="440" y="16" width="12" height="24" fill="#e6f7ff" opacity="0.55">
         <animate
           attributeName="opacity"
           values="0.1;0.8;0.1"
