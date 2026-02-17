@@ -40,8 +40,8 @@ import { getOwnVersion } from '../lib/pkg/packageInformation.js';
 							'2. Craft your schema by hand or tap "+ New Table" in the action bar for a bit of guidance.',
 						)
 						.replace(
-							/\. Save your changes./ig,
-							'3. Save your changes.\n4. Tap "Restart Cluster", and your changes will be live!',
+							/3\. Save your changes./ig,
+							'3. Save your changes.\n4. Tap "Restart Cluster" and your changes will be live!',
 						)
 						.replace(
 							/1\. Create a new greeting\.([tj])s file in the \[resources]\(\.\/resources\) directory./,
