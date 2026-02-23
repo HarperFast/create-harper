@@ -1,0 +1,15 @@
+{
+	"name": "create-harper",
+	"image": "mcr.microsoft.com/devcontainers/javascript-node:24",
+	"customizations": {
+		"vscode": {
+			"extensions": [
+				"dprint.dprint",
+				"vitest.explorer",
+				"oxc-project.oxlint"
+			]
+		}
+	},
+	"postCreateCommand": "npm install",
+	"remoteUser": "node"
+}
