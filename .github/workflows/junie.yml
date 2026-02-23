@@ -8,10 +8,10 @@ on:
   workflow_dispatch:
     inputs:
       run_id:
-        description: "id of workflow process"
+        description: 'id of workflow process'
         required: true
       workflow_params:
-        description: "stringified params"
+        description: 'stringified params'
         required: true
 
 jobs:
