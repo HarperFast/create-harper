@@ -10,6 +10,22 @@ To ensure code quality and consistent formatting, use the following commands:
 - **Formatting**: Use `npm run format:fix` to run `dprint` and format the code.
 - **Testing**: Use `npm run test` to run tests with `vitest`.
 
+## Commits and Pull Requests
+
+This project uses **Conventional Commits**. All commit messages and Pull Request titles must follow the format: `<type>: <description>`.
+
+- **Types**:
+  - `feat`: A new feature.
+  - `fix`: A bug fix.
+  - `docs`: Documentation only changes.
+  - `style`: Changes that do not affect the meaning of the code (white-space, formatting, etc).
+  - `refactor`: A code change that neither fixes a bug nor adds a feature.
+  - `perf`: A code change that improves performance.
+  - `test`: Adding missing tests or correcting existing tests.
+  - `chore`: Changes to the build process or auxiliary tools and libraries such as documentation generation.
+- **Example**: `feat: Add support for Node 24 in devcontainer`
+- **Example**: `fix: Resolve issue with template variable substitution`
+
 ## Template Management
 
 - **Apply Shared Templates**: Use `npm run templates:apply-shared-templates` to propagate changes from `templates-shared` to the individual template directories. This is crucial when updating common files or configurations across multiple templates.
