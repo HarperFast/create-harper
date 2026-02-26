@@ -8,6 +8,7 @@ import { emptyDir } from '../lib/fs/emptyDir.js';
 import { renameFile } from '../lib/fs/renameFile.js';
 import { writeFile } from '../lib/fs/writeFile.js';
 import { getOwnVersion } from '../lib/pkg/packageInformation.js';
+import { run } from '../lib/run.js';
 
 (async function() {
 	for (const templateName of templates) {
@@ -72,5 +73,9 @@ see what different users will be able to access through your API.`,
 		renameFile(path.resolve(toTemplate, '_gitignore'), path.resolve(toTemplate, '.gitignore'));
 		renameFile(path.resolve(toTemplate, '_aiignore'), path.resolve(toTemplate, '.aiignore'));
 		writeFile(path.resolve(toTemplate, '.npmignore'), '!.gitignore\n.npmignore\n');
+		run(['npx', '-y', 'skills', 'add', 'harperfast/skills', '--all', '--yes'], {
+			stdio: 'inherit',
+			cwd: toTemplate,
+		});
 	}
 })();

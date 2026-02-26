@@ -4,6 +4,8 @@
 	"type": "module",
 	"repository": "github:HarperFast/create-harper",
 	"scripts": {
+		"agent:run": "npx -y @harperfast/agent@latest",
+		"agent:skills:update": "npx -y skills@latest add harperfast/skills --all --yes",
 		"dev": "harper run .",
 		"test": "echo 'No tests implemented yet'",
 		"lint": "echo 'No lint implemented yet'",

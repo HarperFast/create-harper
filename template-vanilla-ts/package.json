@@ -4,6 +4,8 @@
 	"type": "module",
 	"repository": "github:HarperFast/create-harper",
 	"scripts": {
+		"agent:run": "npx -y @harperfast/agent@latest",
+		"agent:skills:update": "npx -y skills@latest add harperfast/skills --all --yes",
 		"start": "harperdb run .",
 		"dev": "harperdb dev .",
 		"deploy": "dotenv -- npm run deploy:component",
