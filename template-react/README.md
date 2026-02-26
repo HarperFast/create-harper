@@ -26,7 +26,7 @@ npm run dev
 2. Craft your schema by hand.
 3. Save your changes.
 
-These schemas are the heart of a great Harper app, specifying which tables you want and what attributes/fields they should have. Any table you `@export` stands up [REST endpoints automatically](./skills/automatic-rest-apis.md).
+These schemas are the heart of a great Harper app, specifying which tables you want and what attributes/fields they should have. Any table you `@export` stands up [endpoints automatically](./.agents/skills/harper-best-practices/rules/automatic-apis.md).
 
 ### Add Custom Endpoints
 

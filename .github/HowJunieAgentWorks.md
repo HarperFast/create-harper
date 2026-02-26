@@ -33,7 +33,6 @@ After the environment is ready, Junie reads your `.junie/guidelines.md`. This ac
 
 - "Don't just write code; make sure you run `npm run lint:fix`."
 - "If you change common files, remember to run `npm run templates:apply-shared-templates`."
-- "Look at `AGENTS.md` if you're confused about Harper's custom resources."
 
 ### Do I need to configure anything else?
 
