@@ -1,0 +1,7 @@
+# Site images all have unique cache key based on hints version and page url
+type SiteImages @table(database: "EarlyHints") @sealed @export(name: "site-images") {
+	cacheKey: String @primaryKey # hintsVersion|pageUrl
+	pageUrl: String! @indexed
+	hintsVersion: Int! @indexed
+	hints: [String]!
+}

@@ -1,0 +1,19 @@
+{
+	"name": "your-package-name-here",
+	"version": "0.0.0",
+	"type": "module",
+	"repository": "github:HarperFast/create-harper",
+	"scripts": {
+		"start": "harperdb run .",
+		"dev": "harperdb dev .",
+		"deploy": "dotenv -- npm run deploy:component",
+		"deploy:component": "harperdb deploy_component . restart=rolling replicated=true"
+	},
+	"dependencies": {
+		"fast-xml-parser": "5.3.4"
+	},
+	"devDependencies": {
+		"dotenv-cli": "^11.0.0",
+		"harperdb": "^4.7.15"
+	}
+}
