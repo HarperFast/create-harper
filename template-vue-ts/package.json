@@ -17,7 +17,7 @@
 	"devDependencies": {
 		"@harperfast/vite-plugin": "^0.0.1",
 		"@types/node": "^24.10.1",
-		"@vitejs/plugin-vue": "^5.2.1",
+		"@vitejs/plugin-vue": "^6.0.0",
 		"dotenv-cli": "^11.0.0",
 		"harperdb": "^4.7.17",
 		"typescript": "~5.9.3",
