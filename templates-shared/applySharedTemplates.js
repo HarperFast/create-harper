@@ -10,6 +10,8 @@ import { copyDir } from '../lib/fs/copyDir.js';
 			'template-react-ts',
 			'template-vanilla',
 			'template-vanilla-ts',
+			'template-vue',
+			'template-vue-ts',
 		],
 	};
 	for (const key in copiesToMake) {

@@ -1,0 +1,132 @@
+# your-project-name-here
+
+Your new app is now ready for development!
+
+Here's what you should do next:
+
+## Installation
+
+To get started, make sure you have [installed Harper](https://docs.harperdb.io/docs/deployments/install-harper):
+
+```sh
+npm install -g harperdb
+```
+
+## Development
+
+Then you can start your app:
+
+```sh
+npm run dev
+```
+
+TypeScript is supported at runtime in Node.js through [type stripping](https://nodejs.org/api/typescript.html#type-stripping). Full TypeScript language support can be enabled through integrating third party build steps to transpile your TypeScript into JavaScript.
+
+### Define Your Schema
+
+1. Create a new yourTableName.graphql file in the [schemas](./schemas) directory.
+2. Craft your schema by hand.
+3. Save your changes.
+
+These schemas are the heart of a great Harper app, specifying which tables you want and what attributes/fields they should have. Any table you `@export` stands up [endpoints automatically](./.agents/skills/harper-best-practices/rules/automatic-apis.md).
+
+### Add Custom Endpoints
+
+1. Create a new greeting.ts file in the [resources](./resources) directory.
+
+2. Customize your resource:
+
+   ```typescript
+   import {
+   	type RecordObject,
+   	type RequestTargetOrId,
+   	Resource,
+   } from 'harperdb';
+
+   interface GreetingRecord {
+   	greeting: string;
+   }
+
+   export class Greeting extends Resource<GreetingRecord> {
+   	static loadAsInstance = false;
+
+   	async post(
+   		target: RequestTargetOrId,
+   		newRecord: Partial<GreetingRecord & RecordObject>,
+   	): Promise<GreetingRecord> {
+   		// By default, only super users can access these endpoints.
+   		return { greeting: 'Greetings, post!' };
+   	}
+
+   	async get(target?: RequestTargetOrId): Promise<GreetingRecord> {
+   		// But if we want anyone to be able to access it, we can turn off the permission checks!
+   		target.checkPermission = false;
+   		return { greeting: 'Greetings, get! ' + process.version };
+   	}
+
+   	async put(
+   		target: RequestTargetOrId,
+   		record: GreetingRecord & RecordObject,
+   	): Promise<GreetingRecord> {
+   		target.checkPermission = false;
+   		if (this.getCurrentUser()?.name?.includes('Coffee')) {
+   			// You can add your own authorization guards, of course.
+   			return new Response('Coffee? COFFEE?!', { status: 418 });
+   		}
+   		return { greeting: 'Sssssssssssssss!' };
+   	}
+
+   	async patch(
+   		target: RequestTargetOrId,
+   		record: Partial<GreetingRecord & RecordObject>,
+   	): Promise<GreetingRecord> {
+   		return { greeting: 'We can make this work!' };
+   	}
+
+   	async delete(target: RequestTargetOrId): Promise<boolean> {
+   		return true;
+   	}
+   }
+   ```
+
+3. Save your changes.
+
+### View Your Website
+
+Pop open [http://localhost:9926](http://localhost:9926) to view [web/index.html](./web/index.html) in your browser.
+
+### Use Your API
+
+Test your application works by querying the `/Greeting` endpoint:
+
+```sh
+curl http://localhost:9926/Greeting
+```
+
+You should see the following:
+
+```json
+{ "greeting": "Hello, world!" }
+```
+
+### Configure Your App
+
+Take a look at the [default configuration](./config.yaml), which specifies how files are handled in your application.
+
+## Deployment
+
+When you are ready, head to [https://fabric.harper.fast/](https://fabric.harper.fast/), log in to your account, and create a cluster.
+
+Come back here and configure your [.env](./.env) file with your secure cluster credentials. Don't commit this file to source control!
+
+Then you can deploy your app to your cluster:
+
+```sh
+npm run deploy
+```
+
+## Keep Going!
+
+For more information about getting started with Harper and building applications, see our [getting started guide](https://docs.harperdb.io/docs).
+
+For more information on Harper Components, see the [Components documentation](https://docs.harperdb.io/docs/reference/components).
