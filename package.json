@@ -27,7 +27,6 @@
 		"format:staged": "dprint check --staged --allow-no-files",
 		"lint:check": "oxlint .",
 		"lint:fix": "oxlint . --fix",
-		"prepare": "husky",
 		"test": "vitest run",
 		"test:coverage": "vitest run --coverage",
 		"test:watch": "vitest",
@@ -61,7 +60,6 @@
 		"@vitest/coverage-v8": "^4.0.17",
 		"conventional-changelog-conventionalcommits": "^9.1.0",
 		"dprint": "^0.52.0",
-		"husky": "^9.1.7",
 		"oxlint": "^1.38.0",
 		"semantic-release": "^25.0.2",
 		"vitest": "^4.0.17"
