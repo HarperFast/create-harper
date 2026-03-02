@@ -14,6 +14,12 @@ To ensure code quality and consistent formatting, use the following commands:
 
 This project uses **Conventional Commits**. All commit messages and Pull Request titles must follow the format: `<type>: <description>`.
 
+**MANDATORY**: You MUST use the following format for EVERY commit message you create:
+`<type>: <description>`
+
+**MANDATORY**: You MUST add Junie as a co-author to every commit by appending the following trailer flag:
+`--trailer "Co-authored-by: Junie <junie@jetbrains.com>"`
+
 - **Types**:
   - `feat`: A new feature.
   - `fix`: A bug fix.
