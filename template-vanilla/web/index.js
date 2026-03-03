@@ -1,3 +1,5 @@
+import { decrement, increment } from './counter.js';
+
 let count = 0;
 const counterDisplay = document.getElementById('count');
 const decrementButton = document.getElementById('decrement');
@@ -8,11 +10,11 @@ function updateDisplay() {
 }
 
 decrementButton.addEventListener('click', () => {
-	count--;
+	count = decrement(count);
 	updateDisplay();
 });
 
 incrementButton.addEventListener('click', () => {
-	count++;
+	count = increment(count);
 	updateDisplay();
 });

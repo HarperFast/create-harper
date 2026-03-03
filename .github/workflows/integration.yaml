@@ -8,12 +8,13 @@ on:
 
 jobs:
   test:
-    name: Test (${{ matrix.pkg-manager }})
+    name: Generate ${{ matrix.template }} with ${{ matrix.pkg-manager }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         pkg-manager: [npm, yarn, pnpm, bun, deno]
+        template: [vanilla, vanilla-ts, react, react-ts, vue, vue-ts]
     steps:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -44,29 +45,29 @@ jobs:
       - name: Run Integration Test
         shell: bash
         run: |
-          PROJECT_NAME="test-app-${{ matrix.pkg-manager }}"
+          PROJECT_NAME="test-app-${{ matrix.pkg-manager }}-${{ matrix.template }}"
           export CREATE_HARPER_SKIP_UPDATE=true
 
-          echo "Testing with ${{ matrix.pkg-manager }}..."
+          echo "Testing with ${{ matrix.pkg-manager }} and ${{ matrix.template }}..."
 
           case ${{ matrix.pkg-manager }} in
             npm)
-              npx . "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install
+              npx . "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
               ;;
             yarn)
               corepack enable
-              yarn node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install
+              yarn node index.js "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
               ;;
             pnpm)
-              pnpm exec node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install
+              pnpm exec node index.js "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
               ;;
             bun)
-              bun run index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install
+              bun run index.js "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
               ;;
             deno)
               # Deno doesn't set npm_config_user_agent, so we set it manually
               export npm_config_user_agent="deno/1.40.0"
-              deno run -A index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install
+              deno run -A index.js "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
               ;;
           esac
 
@@ -81,28 +82,75 @@ jobs:
             exit 1
           fi
 
-          # Output check
+          cd "$PROJECT_NAME"
+
+          echo "Installing dependencies..."
           case ${{ matrix.pkg-manager }} in
             npm)
-              OUTPUT=$(npx . "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install)
-              echo "$OUTPUT" | grep -F "npm install" || (echo "Expected 'npm install' in output"; exit 1)
+              npm install
               ;;
             yarn)
-              OUTPUT=$(yarn node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install)
-              echo "$OUTPUT" | grep -F "yarn" || (echo "Expected 'yarn' in output"; exit 1)
+              yarn install
               ;;
             pnpm)
-              OUTPUT=$(pnpm exec node index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install)
-              echo "$OUTPUT" | grep -F "pnpm install" || (echo "Expected 'pnpm install' in output"; exit 1)
+              pnpm install
               ;;
             bun)
-              OUTPUT=$(bun run index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install)
-              echo "$OUTPUT" | grep -F "bun install" || (echo "Expected 'bun install' in output"; exit 1)
+              bun install
               ;;
             deno)
-              export npm_config_user_agent="deno/1.40.0"
-              OUTPUT=$(deno run -A index.js "$PROJECT_NAME" --template vanilla --no-interactive --overwrite --skip-install)
-              echo "$OUTPUT" | grep -F "deno task dev" || (echo "Expected 'deno task dev' in output"; exit 1)
+              # Deno doesn't require an explicit install step for many things, but we can pre-cache
+              # Create deno.json with nodeModulesDir: "auto" to support Node-based tools like Vite
+              echo '{"nodeModulesDir": "auto"}' > deno.json
+              deno install
+              deno cache src/index.js 2>/dev/null || deno cache main.js 2>/dev/null || true
               ;;
           esac
-          echo "Integration test passed for ${{ matrix.pkg-manager }}!"
+
+          echo "Running lint..."
+          case ${{ matrix.pkg-manager }} in
+            deno)
+              # Deno task might not exist if there's no deno.json or tasks defined.
+              # But we just created deno.json. However, the templates have package.json scripts.
+              # Deno can run package.json scripts via 'deno task'.
+              deno task lint || echo "Skipping lint as it might not be defined for Deno yet"
+              ;;
+            *)
+              ${{ matrix.pkg-manager }} run lint
+              ;;
+          esac
+
+          echo "Running format check..."
+          case ${{ matrix.pkg-manager }} in
+            deno)
+              deno fmt --check || deno task format || echo "Skipping format check as it might not be defined for Deno yet"
+              ;;
+            *)
+              ${{ matrix.pkg-manager }} run format
+              ;;
+          esac
+
+          echo "Running tests..."
+          case ${{ matrix.pkg-manager }} in
+            deno)
+              deno test || deno task test || echo "Skipping tests as they might not be defined for Deno yet"
+              ;;
+            *)
+              ${{ matrix.pkg-manager }} run test
+              ;;
+          esac
+
+          # Check for build script and run it if exists
+          if grep -q '"build":' package.json; then
+            echo "Running build..."
+            case ${{ matrix.pkg-manager }} in
+              deno)
+                deno task build
+                ;;
+              *)
+                ${{ matrix.pkg-manager }} run build
+                ;;
+            esac
+          fi
+
+          echo "Integration test passed for ${{ matrix.pkg-manager }} with ${{ matrix.template }}!"

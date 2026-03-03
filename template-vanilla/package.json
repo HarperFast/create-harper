@@ -8,13 +8,19 @@
 		"agent:skills:update": "npx -y skills@latest add harperfast/skills --all --yes",
 		"start": "harperdb run .",
 		"dev": "harperdb dev .",
+		"lint": "eslint .",
+		"format": "prettier --write .",
+		"test": "node --test test/*.test.js",
+		"test:watch": "node --watch --test test/*.test.js",
 		"deploy": "dotenv -- npm run deploy:component",
-		"deploy:component": "harperdb deploy_component . restart=rolling replicated=true",
-		"test": "echo 'No tests implemented yet'",
-		"lint": "echo 'No lint implemented yet'"
+		"deploy:component": "harperdb deploy_component . restart=rolling replicated=true"
 	},
 	"devDependencies": {
+		"@eslint/js": "^10.0.1",
 		"dotenv-cli": "^11.0.0",
-		"harperdb": "^4.7.15"
+		"eslint": "^10.0.2",
+		"globals": "^17.4.0",
+		"harperdb": "^4.7.20",
+		"prettier": "^3.8.1"
 	}
 }
