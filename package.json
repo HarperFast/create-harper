@@ -18,7 +18,9 @@
 		"template-react/",
 		"template-react-ts/",
 		"template-vanilla/",
-		"template-vanilla-ts/"
+		"template-vanilla-ts/",
+		"template-vue/",
+		"template-vue-ts/"
 	],
 	"scripts": {
 		"commitlint": "commitlint --edit",
