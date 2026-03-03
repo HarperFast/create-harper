@@ -2,11 +2,12 @@
 import typescriptLogo from '/typescript.svg';
 import viteLogo from '/vite.svg';
 import vueLogo from '/vue.svg';
+import { increment } from '@/counter.ts';
 import { ref } from 'vue';
 
 const counter = ref(0);
 const countUp = () => {
-	counter.value++;
+	counter.value = increment(counter.value);
 };
 </script>
 

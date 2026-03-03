@@ -6,24 +6,30 @@
 	"scripts": {
 		"agent:run": "npx -y @harperfast/agent@latest",
 		"agent:skills:update": "npx -y skills@latest add harperfast/skills --all --yes",
-		"dev": "harper run .",
-		"test": "echo 'No tests implemented yet'",
-		"lint": "echo 'No lint implemented yet'",
-		"build": "vue-tsc && vite build",
-		"preview": "vite preview",
+		"start": "harperdb run .",
+		"dev": "harperdb dev .",
+		"lint": "eslint .",
+		"format": "prettier --write .",
+		"test": "node --test test/*.test.ts",
+		"test:watch": "node --watch --test test/*.test.ts",
+		"build": "vite build",
 		"deploy": "rm -Rf deploy && npm run build && mkdir deploy && mv web deploy/ && cp -R deploy-template/* deploy/ && dotenv -- npm run deploy:component && rm -Rf deploy",
 		"deploy:component": "(cd deploy && harperdb deploy_component . project=web restart=rolling replicated=true)"
 	},
 	"devDependencies": {
+		"@eslint/js": "^10.0.1",
 		"@harperfast/vite-plugin": "^0.0.1",
 		"@types/node": "^24.10.1",
-		"@vitejs/plugin-vue": "^6.0.0",
+		"@vitejs/plugin-vue": "^6.0.4",
 		"dotenv-cli": "^11.0.0",
-		"harperdb": "^4.7.17",
+		"eslint": "^10.0.2",
+		"globals": "^17.4.0",
+		"harperdb": "^4.7.20",
+		"prettier": "^3.8.1",
 		"typescript": "~5.9.3",
 		"vite": "npm:rolldown-vite@7.3.1",
-		"vue": "^3.5.13",
-		"vue-tsc": "^2.2.0"
+		"vue": "^3.5.29",
+		"vue-tsc": "^3.2.5"
 	},
 	"overrides": {
 		"vite": "npm:rolldown-vite@7.3.1"

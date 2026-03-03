@@ -2,11 +2,12 @@ import reactLogo from '/react.svg';
 import typescriptLogo from '/typescript.svg';
 import viteLogo from '/vite.svg';
 import { useCallback, useState } from 'react';
+import { increment } from './counter.js';
 
 export function App() {
 	const [counter, setCounter] = useState(0);
 	const countUp = useCallback(() => {
-		setCounter(counter => counter + 1);
+		setCounter(counter => increment(counter));
 	}, []);
 
 	return (
