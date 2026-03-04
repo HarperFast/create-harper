@@ -4,11 +4,11 @@ export default defineConfig({
 	test: {
 		coverage: {
 			provider: 'v8',
-			include: ['index.js', 'lib/**/*.js'],
+			include: ['lib/**/*.js'],
+			exclude: ['lib/**/*.test.js'],
 			all: true,
 		},
 		include: [
-			'index.test.js',
 			'lib/**/*.test.js',
 		],
 	},
