@@ -27,10 +27,9 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           fetch-depth: 1
-
       - name: Run Junie
         id: junie
-        uses: JetBrains/junie-github-action@0f26c6eecb7891c2e376564da42d1960fc0b80df # v0.10.4
+        uses: JetBrains/junie-github-action@e98483eebe3270dc041ff6df56850dc5aa5be84c # v1.1.0
         with:
           junie_api_key: ${{ secrets.JUNIE_API_KEY }}
           use_single_comment: true
