@@ -19,6 +19,12 @@ jobs:
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
 
+      - name: Setup pnpm
+        if: matrix.pkg-manager == 'pnpm'
+        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+        with:
+          version: 10
+
       - name: Setup Node.js
         uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
         with:
@@ -28,19 +34,36 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Setup pnpm
+      - name: Get pnpm store directory
         if: matrix.pkg-manager == 'pnpm'
-        uses: pnpm/action-setup@41ff72655975bd51cab0327fa583b6e92b6d3061 # v4.2.0
+        id: pnpm-cache
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Cache pnpm modules
+        if: matrix.pkg-manager == 'pnpm'
+        uses: actions/cache@v4
         with:
-          version: 10
+          path: ${{ steps.pnpm-cache.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('package-lock.json', 'template-*/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
 
-      - name: Setup Bun
-        if: matrix.pkg-manager == 'bun'
-        uses: oven-sh/setup-bun@3d267786b128fe76c2f16a390aa2448b815359f3 # v2.1.2
+      - name: Get yarn cache directory
+        if: matrix.pkg-manager == 'yarn'
+        id: yarn-cache-dir
+        shell: bash
+        run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
 
-      - name: Setup Deno
-        if: matrix.pkg-manager == 'deno'
-        uses: denoland/setup-deno@e95548e56dfa95d4e1a28d6f422fafe75c4c26fb # v2.0.3
+      - name: Cache yarn modules
+        if: matrix.pkg-manager == 'yarn'
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.yarn-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('package-lock.json', 'template-*/package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
 
       - name: Run Integration Test
         shell: bash
@@ -60,14 +83,6 @@ jobs:
               ;;
             pnpm)
               pnpm exec node index.js "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
-              ;;
-            bun)
-              bun run index.js "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
-              ;;
-            deno)
-              # Deno doesn't set npm_config_user_agent, so we set it manually
-              export npm_config_user_agent="deno/1.40.0"
-              deno run -A index.js "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
               ;;
           esac
 
@@ -95,62 +110,21 @@ jobs:
             pnpm)
               pnpm install
               ;;
-            bun)
-              bun install
-              ;;
-            deno)
-              # Deno doesn't require an explicit install step for many things, but we can pre-cache
-              # Create deno.json with nodeModulesDir: "auto" to support Node-based tools like Vite
-              echo '{"nodeModulesDir": "auto"}' > deno.json
-              deno install
-              deno cache src/index.js 2>/dev/null || deno cache main.js 2>/dev/null || true
-              ;;
           esac
 
           echo "Running lint..."
-          case ${{ matrix.pkg-manager }} in
-            deno)
-              # Deno task might not exist if there's no deno.json or tasks defined.
-              # But we just created deno.json. However, the templates have package.json scripts.
-              # Deno can run package.json scripts via 'deno task'.
-              deno task lint || echo "Skipping lint as it might not be defined for Deno yet"
-              ;;
-            *)
-              ${{ matrix.pkg-manager }} run lint
-              ;;
-          esac
+          ${{ matrix.pkg-manager }} run lint
 
           echo "Running format check..."
-          case ${{ matrix.pkg-manager }} in
-            deno)
-              deno fmt --check || deno task format || echo "Skipping format check as it might not be defined for Deno yet"
-              ;;
-            *)
-              ${{ matrix.pkg-manager }} run format
-              ;;
-          esac
+          ${{ matrix.pkg-manager }} run format
 
           echo "Running tests..."
-          case ${{ matrix.pkg-manager }} in
-            deno)
-              deno test || deno task test || echo "Skipping tests as they might not be defined for Deno yet"
-              ;;
-            *)
-              ${{ matrix.pkg-manager }} run test
-              ;;
-          esac
+          ${{ matrix.pkg-manager }} run test
 
           # Check for build script and run it if exists
           if grep -q '"build":' package.json; then
             echo "Running build..."
-            case ${{ matrix.pkg-manager }} in
-              deno)
-                deno task build
-                ;;
-              *)
-                ${{ matrix.pkg-manager }} run build
-                ;;
-            esac
+            ${{ matrix.pkg-manager }} run build
           fi
 
           echo "Integration test passed for ${{ matrix.pkg-manager }} with ${{ matrix.template }}!"
