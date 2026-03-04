@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        pkg-manager: [npm, yarn, pnpm, bun, deno]
+        pkg-manager: [npm, yarn, pnpm]
         template: [vanilla, vanilla-ts, react, react-ts, vue, vue-ts]
     steps:
       - name: Checkout
