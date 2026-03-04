@@ -7,7 +7,7 @@ import { useCallback, useState } from 'react';
 export function App() {
 	const [counter, setCounter] = useState(0);
 	const countUp = useCallback(() => {
-		setCounter(counter => increment(counter));
+		setCounter((counter: number) => increment(counter));
 	}, []);
 
 	return (
