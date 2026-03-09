@@ -17,6 +17,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
+		"@harperfast/schema-codegen": "^1.0.9",
 		"dotenv-cli": "^11.0.0",
 		"eslint": "^10.0.2",
 		"globals": "^17.4.0",

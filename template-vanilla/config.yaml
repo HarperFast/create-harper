@@ -19,6 +19,10 @@ graphqlSchema:
 jsResource:
   files: 'resources/*.js'
 
+'@harperfast/schema-codegen':
+  package: '@harperfast/schema-codegen'
+  jsdoc: 'schemas/jsdocTypes.js'
+
 # Serve the static files from the web directory as a web application
 static:
   files: 'web/*'

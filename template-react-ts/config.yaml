@@ -19,5 +19,10 @@ graphqlSchema:
 jsResource:
   files: 'resources/*.ts'
 
+'@harperfast/schema-codegen':
+  package: '@harperfast/schema-codegen'
+  globalTypes: 'schemas/globalTypes.d.ts'
+  schemaTypes: 'schemas/types.ts'
+
 '@harperfast/vite-plugin':
   package: '@harperfast/vite-plugin'
