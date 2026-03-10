@@ -6,7 +6,8 @@
 		{
 			"files": ["template-*/**", "templates-*/**"],
 			"rules": {
-				"no-unused-vars": "off"
+				"no-unused-vars": "off",
+				"no-empty-file": "off"
 			}
 		}
 	]
