@@ -1,2 +1,10 @@
 fastifyRoutes:
   files: fastify/*.js
+
+rest: true
+
+graphqlSchema:
+  files: 'schemas/*.graphql'
+
+jsResource:
+  files: 'resources/*.js'
