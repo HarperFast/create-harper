@@ -21,18 +21,14 @@
 		"@harperfast/schema-codegen": "^1.0.9",
 		"@harperfast/vite-plugin": "^0.0.1",
 		"@types/node": "^24.10.1",
-		"@vitejs/plugin-vue": "^6.0.4",
+		"@vitejs/plugin-vue": "^6.0.5",
 		"dotenv-cli": "^11.0.0",
 		"eslint": "^10.0.2",
 		"globals": "^17.4.0",
-		"harperdb": "^4.7.20",
 		"prettier": "^3.8.1",
 		"typescript": "~5.9.3",
-		"vite": "npm:rolldown-vite@7.3.1",
+		"vite": "^8.0.0",
 		"vue": "^3.5.29",
 		"vue-tsc": "^3.2.5"
-	},
-	"overrides": {
-		"vite": "npm:rolldown-vite@7.3.1"
 	}
 }
