@@ -19,7 +19,7 @@
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"@harperfast/schema-codegen": "^1.0.9",
-		"@harperfast/vite-plugin": "^0.0.1",
+		"@harperfast/vite-plugin": "^0.1.0",
 		"@types/node": "^24.10.1",
 		"@types/react": "^19.2.10",
 		"@types/react-dom": "^19.2.3",
