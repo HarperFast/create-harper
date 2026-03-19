@@ -3,6 +3,12 @@
   <component name="NewModuleRootManager">
     <content url="file://$MODULE_DIR$">
       <excludeFolder url="file://$MODULE_DIR$/coverage" />
+      <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-react" />
+      <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-react-ts" />
+      <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-vanilla" />
+      <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-vanilla-ts" />
+      <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-vue" />
+      <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-vue-ts" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
