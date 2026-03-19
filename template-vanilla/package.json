@@ -6,14 +6,14 @@
 	"scripts": {
 		"agent:run": "npx -y @harperfast/agent@latest",
 		"agent:skills:update": "npx -y skills@latest add harperfast/skills --all --yes",
-		"start": "harperdb run .",
-		"dev": "harperdb dev .",
+		"start": "harper run .",
+		"dev": "harper dev .",
 		"lint": "eslint .",
 		"format": "prettier --write .",
 		"test": "node --test test/*.test.js",
 		"test:watch": "node --watch --test test/*.test.js",
 		"deploy": "dotenv -- npm run deploy:component",
-		"deploy:component": "harperdb deploy_component . restart=rolling replicated=true"
+		"deploy:component": "harper deploy_component . restart=rolling replicated=true"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
