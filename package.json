@@ -61,7 +61,7 @@
 		"@semantic-release/release-notes-generator": "^14.1.0",
 		"@vitest/coverage-v8": "^4.0.17",
 		"conventional-changelog-conventionalcommits": "^9.1.0",
-		"dprint": "^0.52.0",
+		"dprint": "^0.53.0",
 		"oxlint": "^1.38.0",
 		"semantic-release": "^25.0.2",
 		"vitest": "^4.0.17"
