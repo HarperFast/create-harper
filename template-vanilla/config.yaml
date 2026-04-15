@@ -19,6 +19,7 @@ graphqlSchema:
 jsResource:
   files: 'resources/*.js'
 
+# Generates jsdoc types for the schema so your code is schema-aware
 '@harperfast/schema-codegen':
   package: '@harperfast/schema-codegen'
   jsdoc: 'schemas/jsdocTypes.js'

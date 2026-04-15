@@ -19,10 +19,12 @@ graphqlSchema:
 jsResource:
   files: 'resources/*.ts'
 
+# Generates types for the schema so your code is schema-aware
 '@harperfast/schema-codegen':
   package: '@harperfast/schema-codegen'
   globalTypes: 'schemas/globalTypes.d.ts'
   schemaTypes: 'schemas/types.ts'
 
+# Bootstraps Vite to build your frontend to HTML/JS/CSS
 '@harperfast/vite-plugin':
   package: '@harperfast/vite-plugin'
