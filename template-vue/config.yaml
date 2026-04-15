@@ -19,9 +19,11 @@ graphqlSchema:
 jsResource:
   files: 'resources/*.js'
 
+# Generates jsdoc types for the schema so your code is schema-aware
 '@harperfast/schema-codegen':
   package: '@harperfast/schema-codegen'
   jsdoc: 'schemas/jsdocTypes.js'
 
+# Bootstraps Vite to build your frontend to HTML/JS/CSS
 '@harperfast/vite-plugin':
   package: '@harperfast/vite-plugin'
