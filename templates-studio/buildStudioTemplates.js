@@ -21,12 +21,16 @@ import { run } from '../lib/run.js';
 			toTemplate,
 			(srcFile) => !srcFile.includes('_env'),
 			(sourceContent, targetPath) => {
-				if (targetPath.endsWith('package.json')) {
+				if (targetPath.endsWith('/package.json')) {
 					return sourceContent
 						.replace(/your-package-name-here/g, `@harperfast/${targetTemplate}-studio`)
 						.replace(/"version": "0.0.0"/g, `"version": "${getOwnVersion()}"`)
-						.replace(/"scripts":[\s\S]+?\t}/, '"scripts": {}');
-				} else if (targetPath.endsWith('README.md')) {
+						.replace(/"scripts":[\s\S]+?\t}/, '"scripts": {}')
+						.replace(/"devDependencies":[\s\S]+?\t}/, '"devDependencies": {}');
+				} else if (targetPath.endsWith('/config.yaml')) {
+					return sourceContent
+						.replace(/'@harperfast\/schema-codegen':[\s\S]+?\n\n/, '');
+				} else if (targetPath.endsWith('/README.md')) {
 					return sourceContent
 						.replace(
 							'Your new app is now ready for development!',
