@@ -13,8 +13,7 @@
 		"test": "node --test test/*.test.ts",
 		"test:watch": "node --watch --test test/*.test.ts",
 		"build": "vite build",
-		"deploy": "rm -Rf deploy && npm run build && mkdir deploy && mv web deploy/ && cp -R deploy-template/* deploy/ && cp -R schemas resources deploy/ && dotenv -- npm run deploy:component && rm -Rf deploy",
-		"deploy:component": "(cd deploy && harper deploy_component . project=web restart=rolling replicated=true)"
+		"deploy": "npm run build && dotenv -- ./deploy.sh"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

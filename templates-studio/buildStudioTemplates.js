@@ -6,6 +6,7 @@ import { templates } from '../lib/constants/templates.js';
 import { copyDir } from '../lib/fs/copyDir.js';
 import { emptyDir } from '../lib/fs/emptyDir.js';
 import { renameFile } from '../lib/fs/renameFile.js';
+import { rmFile } from '../lib/fs/rmFile.js';
 import { writeFile } from '../lib/fs/writeFile.js';
 import { getOwnVersion } from '../lib/pkg/packageInformation.js';
 import { run } from '../lib/run.js';
@@ -77,6 +78,7 @@ see what different users will be able to access through your API.`,
 		renameFile(path.resolve(toTemplate, '_gitignore'), path.resolve(toTemplate, '.gitignore'));
 		renameFile(path.resolve(toTemplate, '_aiignore'), path.resolve(toTemplate, '.aiignore'));
 		writeFile(path.resolve(toTemplate, '.npmignore'), '!.gitignore\n.npmignore\n');
+		rmFile(path.resolve(toTemplate, 'deploy.sh'));
 		run(['npx', '-y', 'skills', 'add', 'harperfast/skills', '--all', '--yes'], {
 			stdio: 'inherit',
 			cwd: toTemplate,
