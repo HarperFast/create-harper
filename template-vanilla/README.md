@@ -9,7 +9,7 @@ Here's what you should do next:
 To get started, make sure you have [installed Harper](https://docs.harperdb.io/docs/deployments/install-harper):
 
 ```sh
-npm install -g harperdb
+npm install -g harper
 ```
 
 ## Development

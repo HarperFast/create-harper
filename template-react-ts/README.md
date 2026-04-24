@@ -9,7 +9,7 @@ Here's what you should do next:
 To get started, make sure you have [installed Harper](https://docs.harperdb.io/docs/deployments/install-harper):
 
 ```sh
-npm install -g harperdb
+npm install -g harper
 ```
 
 ## Development
@@ -37,11 +37,7 @@ These schemas are the heart of a great Harper app, specifying which tables you w
 2. Customize your resource:
 
    ```typescript
-   import {
-   	type RecordObject,
-   	type RequestTargetOrId,
-   	Resource,
-   } from 'harperdb';
+   import { type RecordObject, type RequestTargetOrId, Resource } from 'harper';
 
    interface GreetingRecord {
    	greeting: string;
