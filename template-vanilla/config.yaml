@@ -1,4 +1,4 @@
-# yaml-language-server: $schema=./node_modules/harperdb/config-app.schema.json
+# yaml-language-server: $schema=./node_modules/harper/config-app.schema.json
 
 # This is the configuration file for the application.
 # It specifies built-in Harper components that will load the specified feature and files.

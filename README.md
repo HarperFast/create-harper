@@ -2,6 +2,14 @@
 
 <a href="https://npmjs.com/package/create-harper"><img src="https://img.shields.io/npm/v/create-harper" alt="npm package"></a>
 
+## Prerequisites
+
+Before you begin, ensure you have the following tools installed on your machine:
+
+- **Node.js**: `create-harper` requires a LTS version of Node.js, such as v22 or higher. You can download it from [nodejs.org](https://nodejs.org/).
+- **Git**: You can install it from [git-scm.com](https://git-scm.com/).
+- **Common Build Tools**: On some systems (like Linux or macOS), you might need additional build tools (e.g., `make`, `gcc`, `g++`) to install certain dependencies. These are often included in packages like `build-essential` on Ubuntu or via Xcode Command Line Tools on macOS.
+
 ## Scaffolding Your First Harper Project
 
 With NPM:
