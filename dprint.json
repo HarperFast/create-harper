@@ -18,6 +18,7 @@
 	},
 	"excludes": [
 		"**/node_modules",
+		"pnpm-lock.yaml",
 		"template-early-hints/schemas/schema.graphql"
 	],
 	"plugins": [
