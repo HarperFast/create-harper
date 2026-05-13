@@ -70,19 +70,28 @@ jobs:
         run: |
           PROJECT_NAME="test-app-${{ matrix.pkg-manager }}-${{ matrix.template }}"
           export CREATE_HARPER_SKIP_UPDATE=true
+          REPO_PATH=$(pwd)
+          TEMP_DIR=$(mktemp -d)
+
+          echo "Testing in temporary directory: $TEMP_DIR"
 
           echo "Testing with ${{ matrix.pkg-manager }} and ${{ matrix.template }}..."
 
           case ${{ matrix.pkg-manager }} in
             npm)
-              npx . "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
+              cd "$TEMP_DIR"
+              npx "$REPO_PATH" "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
               ;;
             yarn)
+              cd "$TEMP_DIR"
               corepack enable
-              yarn node index.js "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
+              yarn node "$REPO_PATH/index.js" "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
               ;;
             pnpm)
-              pnpm exec node index.js "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
+              pnpm install
+              pnpm add -g .
+              cd "$TEMP_DIR"
+              create-harper "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
               ;;
           esac
 
