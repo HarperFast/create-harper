@@ -58,8 +58,7 @@ Copy these script examples to manage your development and deployment workflows:
 "scripts": {
   "dev": "harper run .",
   "build": "tsc -b && vite build",
-  "build-and-deploy": "rm -Rf deploy && npm run build && mkdir deploy && mv web deploy/ && cp -R deploy-template/* deploy/ && dotenv -- npm run deploy-web && rm -Rf deploy",
-  "deploy-web": "(cd deploy && harperdb deploy_component . project=web restart=rolling replicated=true)"
+  "deploy": "rm -Rf deploy && npm run build && mkdir deploy && mv web deploy/ && cp -R deploy-template/* deploy/ && (cd deploy && harperdb deploy_component . project=web restart=true replicated=true) && rm -Rf deploy"
 }
 ```
 
