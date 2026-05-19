@@ -12,13 +12,11 @@
 		"format": "prettier --write .",
 		"test": "node --test test/*.test.js",
 		"test:watch": "node --watch --test test/*.test.js",
-		"deploy": "dotenv -- npm run deploy:component",
-		"deploy:component": "harper deploy_component . restart=rolling replicated=true"
+		"deploy": "harper deploy_component . restart=true replicated=true"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
 		"@harperfast/schema-codegen": "^1.0.10",
-		"dotenv-cli": "^11.0.0",
 		"eslint": "^10.0.2",
 		"globals": "^17.4.0",
 		"prettier": "^3.8.1"
