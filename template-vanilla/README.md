@@ -105,7 +105,11 @@ Take a look at the [default configuration](./config.yaml), which specifies how f
 
 When you are ready, head to [https://fabric.harper.fast/](https://fabric.harper.fast/), log in to your account, and create a cluster.
 
-Come back here and configure your [.env](./.env) file with your secure cluster credentials. Don't commit this file to source control!
+Come back and log in your local CLI to your cluster:
+
+```sh
+harper login
+```
 
 Then you can deploy your app to your cluster:
 
