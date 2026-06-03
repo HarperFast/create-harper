@@ -1,0 +1,43 @@
+# yaml-language-server: $schema=./node_modules/harper/config-app.schema.json
+
+# This is the configuration file for the application.
+# It specifies built-in Harper components that will load the specified feature and files.
+# For more information, see https://docs.harperdb.io/docs/reference/components/built-in-extensions
+
+# Load Environment Variables from the specified file
+# loadEnv:
+#   files: '.env'
+
+# This provides the HTTP REST interface for all exported resources
+rest: true
+
+# These reads GraphQL schemas to define the schema of database/tables/attributes.
+graphqlSchema:
+  files: 'schemas/*.graphql'
+
+# Loads JavaScript modules such that their exports are exported as resources
+jsResource:
+  files: 'resources/*.ts'
+
+# Generates types for the schema so your code is schema-aware
+'@harperfast/schema-codegen':
+  package: '@harperfast/schema-codegen'
+  globalTypes: 'schemas/globalTypes.d.ts'
+  schemaTypes: 'schemas/types.ts'
+
+# Bootstraps Vite to build your frontend to HTML/JS/CSS.
+# In production it builds your app (and recompiles when files in `files` change) and renders HTML on
+# the server; the `static` component below serves the built assets. Listed before `static` so its dev
+# server wins in `harper dev`.
+'@harperfast/vite':
+  package: '@harperfast/vite'
+  files: 'src/**/*'
+  output: 'dist'
+  # Server-side render entry. Renders HTML on the server; omit to serve a client-only (SPA) app.
+  ssr: 'src/entry-server.ts'
+
+# Serves the built assets from Vite's output directory. `index: false` because this is an SSR app —
+# the Vite plugin renders index.html; static only serves assets.
+static:
+  files: 'dist/**'
+  index: false

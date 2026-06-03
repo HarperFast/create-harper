@@ -9,11 +9,11 @@ export default defineConfig({
 	],
 	resolve: {
 		alias: {
-			'@': path.resolve(__dirname, './src'),
+			'@': path.resolve(import.meta.dirname, './src'),
 		},
 	},
 	build: {
-		outDir: 'web',
+		outDir: 'dist',
 		emptyOutDir: true,
 		rolldownOptions: {
 			external: ['**/*.test.*', '**/*.spec.*'],

@@ -38,8 +38,8 @@ The Vite plugin integrates Vite's development server directly into Harper, provi
 Add the Vite plugin to your `config.yaml`:
 
 ```yaml
-'@harperfast/vite-plugin':
-  package: '@harperfast/vite-plugin'
+'@harperfast/vite':
+  package: '@harperfast/vite'
 ```
 
 ### Setup
@@ -67,7 +67,7 @@ Copy these script examples to manage your development and deployment workflows:
 Include the Vite plugin and other related dependencies in your `devDependencies`:
 
 ```bash
-npm install --save-dev vite @harperfast/vite-plugin @vitejs/plugin-react dotenv-cli
+npm install --save-dev vite @harperfast/vite @vitejs/plugin-react dotenv-cli
 ```
 
 ### Deploying to Production

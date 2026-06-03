@@ -13,7 +13,7 @@ export default defineConfig({
 		},
 	},
 	build: {
-		outDir: 'web',
+		outDir: 'dist',
 		emptyOutDir: true,
 		rolldownOptions: {
 			external: ['**/*.test.*', '**/*.spec.*'],
