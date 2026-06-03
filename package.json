@@ -17,10 +17,14 @@
 		"!lib/**/*.test.js",
 		"template-react/",
 		"template-react-ts/",
+		"template-react-ssr/",
+		"template-react-ts-ssr/",
 		"template-vanilla/",
 		"template-vanilla-ts/",
 		"template-vue/",
-		"template-vue-ts/"
+		"template-vue-ts/",
+		"template-vue-ssr/",
+		"template-vue-ts-ssr/"
 	],
 	"scripts": {
 		"commitlint": "commitlint --edit",

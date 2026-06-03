@@ -24,6 +24,19 @@ jsResource:
   package: '@harperfast/schema-codegen'
   jsdoc: 'schemas/jsdocTypes.js'
 
-# Bootstraps Vite to build your frontend to HTML/JS/CSS
-'@harperfast/vite-plugin':
-  package: '@harperfast/vite-plugin'
+# Bootstraps Vite to build your frontend to HTML/JS/CSS.
+# In production it builds your app (and recompiles when files in `files` change); the `static`
+# component below serves the built output. Listed before `static` so its dev server wins in `harper dev`.
+'@harperfast/vite':
+  package: '@harperfast/vite'
+  files: 'src/**/*'
+  output: 'dist'
+
+# Serves the built frontend from Vite's output directory. `notFound` + `fallthrough: false` makes
+# client-side routing work (unmatched routes return index.html); the REST routes above take precedence.
+static:
+  files: 'dist/**'
+  notFound:
+    file: 'index.html'
+    statusCode: 200
+  fallthrough: false

@@ -9,10 +9,14 @@ import { copyDir } from '../lib/fs/copyDir.js';
 			'template-early-hints',
 			'template-react',
 			'template-react-ts',
+			'template-react-ssr',
+			'template-react-ts-ssr',
 			'template-vanilla',
 			'template-vanilla-ts',
 			'template-vue',
 			'template-vue-ts',
+			'template-vue-ssr',
+			'template-vue-ts-ssr',
 		],
 	};
 	for (const key in copiesToMake) {
