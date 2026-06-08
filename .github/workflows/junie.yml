@@ -24,12 +24,12 @@ jobs:
       issues: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
         with:
           fetch-depth: 1
       - name: Run Junie
         id: junie
-        uses: JetBrains/junie-github-action@27fb607b21b31e84396678082365a493f67b4d86 # v1.4.6
+        uses: JetBrains/junie-github-action@ea9bf13e99e8b4aac9e43483f5381502eb9caf7e # v1.4.8
         with:
           junie_api_key: ${{ secrets.JUNIE_API_KEY }}
           use_single_comment: true
