@@ -9,6 +9,10 @@
       <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-vanilla-ts" />
       <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-vue" />
       <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-vue-ts" />
+      <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-react-ssr" />
+      <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-react-ts-ssr" />
+      <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-vue-ssr" />
+      <excludeFolder url="file://$MODULE_DIR$/templates-studio/template-vue-ts-ssr" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
