@@ -6,6 +6,7 @@ import path from 'node:path';
 import { templates } from '../lib/constants/templates.js';
 
 (async function() {
+	let hitError = 0;
 	for (const templateName of templates) {
 		const targetTemplate = 'template-' + templateName;
 		const toTemplate = path.resolve(import.meta.dirname, targetTemplate);
@@ -19,7 +20,11 @@ import { templates } from '../lib/constants/templates.js';
 			stdio: 'inherit',
 		});
 		if (status != null && status > 0) {
-			process.exit(status);
+			hitError = 0;
+			console.error(`${templateName} failed to publish with status code ${status}`);
 		}
+	}
+	if (hitError) {
+		process.exit(hitError);
 	}
 })();
