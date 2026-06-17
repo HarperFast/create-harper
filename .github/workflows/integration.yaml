@@ -88,10 +88,8 @@ jobs:
               yarn node "$REPO_PATH/index.js" "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
               ;;
             pnpm)
-              pnpm install
-              pnpm add -g .
               cd "$TEMP_DIR"
-              create-harper "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
+              npm_config_user_agent="pnpm/$(pnpm --version)" node "$REPO_PATH/index.js" "$PROJECT_NAME" --template ${{ matrix.template }} --no-interactive --overwrite --skip-install
               ;;
           esac
 
