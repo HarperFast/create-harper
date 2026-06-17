@@ -13,7 +13,7 @@ import { templates } from '../lib/constants/templates.js';
 			console.error('Please npm run templates:build-studio-templates before templates:publish-studio-templates');
 			process.exit(1);
 		}
-		const { status } = spawn.sync('npm', ['publish', '--provenance'], {
+		const { status } = spawn.sync('npm', ['publish', '--provenance', '--access', 'public'], {
 			encoding: 'utf-8',
 			cwd: toTemplate,
 			stdio: 'inherit',
