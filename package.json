@@ -3,6 +3,13 @@
 	"description": "Scaffold a new Harper project in JavaScript or TypeScript.",
 	"version": "1.8.2",
 	"type": "module",
+	"sideEffects": false,
+	"exports": {
+		"./templates": {
+			"types": "./lib/constants/templates.d.ts",
+			"import": "./lib/constants/templates.js"
+		}
+	},
 	"author": {
 		"name": "HarperDB",
 		"email": "support@harperdb.io"

@@ -2,7 +2,7 @@ import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, test } from 'vitest';
-import { templates } from '../lib/constants/templates.js';
+import { templateNames } from '../lib/constants/templates.js';
 
 const root = path.resolve(import.meta.dirname, '..');
 const cliPath = path.resolve(root, 'index.js');
@@ -22,7 +22,7 @@ describe('Integration tests', () => {
 		}
 	});
 
-	for (const template of templates) {
+	for (const template of templateNames) {
 		test(`generates ${template} template`, () => {
 			const projectName = `test-${template}`;
 			const targetDir = path.resolve(tempDir, projectName);

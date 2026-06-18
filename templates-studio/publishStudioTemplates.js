@@ -3,11 +3,11 @@
 import spawn from 'cross-spawn';
 import fs from 'node:fs';
 import path from 'node:path';
-import { templates } from '../lib/constants/templates.js';
+import { templateNames } from '../lib/constants/templates.js';
 
 (async function() {
 	let hitError = 0;
-	for (const templateName of templates) {
+	for (const templateName of templateNames) {
 		const targetTemplate = 'template-' + templateName;
 		const toTemplate = path.resolve(import.meta.dirname, targetTemplate);
 		if (!fs.existsSync(toTemplate)) {
