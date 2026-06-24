@@ -3,7 +3,7 @@
 	"configurations": [
 		{
 			"name": "harper",
-			"runtimeExecutable": "npm",
+			"runtimeExecutable": "your-package-manager-here",
 			"runtimeArgs": ["run", "dev"],
 			"port": 9926
 		}
