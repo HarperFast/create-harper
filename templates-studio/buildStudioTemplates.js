@@ -19,7 +19,9 @@ import { run } from '../lib/run.js';
 		copyDir(
 			fromTemplate,
 			toTemplate,
-			(srcFile) => !srcFile.includes('_env'),
+			// Studio apps run deployed on Harper Fabric (no local `npm run dev`), so skip the
+			// `.claude/launch.json` preview config that only applies to local development.
+			(srcFile) => !srcFile.includes('_env') && !srcFile.includes('_claude'),
 			(sourceContent, targetPath) => {
 				if (targetPath.endsWith('/package.json')) {
 					return sourceContent

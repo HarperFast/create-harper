@@ -104,6 +104,11 @@ jobs:
             exit 1
           fi
 
+          if [ ! -f "$PROJECT_NAME/.claude/launch.json" ]; then
+            echo "Error: .claude/launch.json was not created in $PROJECT_NAME"
+            exit 1
+          fi
+
           cd "$PROJECT_NAME"
 
           echo "Installing dependencies..."
