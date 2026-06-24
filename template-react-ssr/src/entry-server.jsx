@@ -3,8 +3,25 @@ import { StrictMode } from 'react';
 import { renderToString } from 'react-dom/server';
 
 /**
- * Server render entry. The Vite Harper plugin calls this for HTML navigations and injects the
- * returned markup into the `<!--ssr-outlet-->` placeholder in index.html.
+ * Server render entry. The Vite Harper plugin calls this (awaiting it) for HTML navigations and
+ * injects the returned markup into the `<!--ssr-outlet-->` placeholder in index.html.
+ *
+ * To render with data already in place (no client-side fetch), read from Harper right here. The
+ * `tables` registry is the same live, process-wide object available everywhere in Harper — the SSR
+ * entry can reach it via `import { tables } from 'harper'` because Harper symlinks
+ * `node_modules/harper` to the running install (and `vite.config.js` keeps `harper` external). Make
+ * `render` async and query a table, e.g.:
+ *
+ *     import { tables } from 'harper';
+ *
+ *     export async function render(url) {
+ *       const product = await tables.Product.get(idFromUrl(url));
+ *       return renderToString(
+ *         <StrictMode>
+ *           <App product={product} />
+ *         </StrictMode>,
+ *       );
+ *     }
  *
  * @param {string} _url The request URL — use it to drive routing/data loading per request.
  * @returns {string}
