@@ -14,6 +14,7 @@ import { renderToString } from 'react-dom/server';
  *
  *     import { tables } from 'harper';
  *
+ *     // The template's App takes no props — update App.jsx to accept `product`.
  *     export async function render(url) {
  *       const product = await tables.Product.get(idFromUrl(url));
  *       return renderToString(
