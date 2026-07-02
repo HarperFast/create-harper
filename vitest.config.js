@@ -10,6 +10,7 @@ export default defineConfig({
 		},
 		include: [
 			'lib/**/*.test.js',
+			'template.tests/staticConfig.test.js',
 		],
 	},
 });

@@ -33,11 +33,11 @@ jsResource:
   files: 'src/**/*'
   output: 'dist'
 
-# Serves the built frontend from Vite's output directory. `notFound` + `fallthrough: false` makes
-# client-side routing work (unmatched routes return index.html); the REST routes above take precedence.
+# Serves the built frontend from Vite's output directory. Requests that don't match a file fall
+# through to the REST resources above. If you add client-side routing, use hash-based routing
+# (e.g. React Router's `createHashRouter`): every page loads from `/`, so deep links work and
+# index.html stays cacheable at a single URL. Do not add a `notFound` + `fallthrough: false`
+# fallback here — the static handler runs before the REST handler, so it would swallow GET
+# requests to your resources.
 static:
   files: 'dist/**'
-  notFound:
-    file: 'index.html'
-    statusCode: 200
-  fallthrough: false
