@@ -43,6 +43,7 @@ fs.mkdirSync(homeDir);
 // extension must match the template's jsResource glob (`resources/*.ts` in TS templates).
 const isTypeScript = fs.readFileSync(path.join(appDir, 'config.yaml'), 'utf-8').includes('resources/*.ts');
 const resourcePath = path.join(appDir, 'resources', `smokeTestResource.${isTypeScript ? 'ts' : 'js'}`);
+fs.mkdirSync(path.dirname(resourcePath), { recursive: true });
 fs.writeFileSync(
 	resourcePath,
 	`export class SmokeTestResource extends Resource {
@@ -81,10 +82,18 @@ harper.stdout.on('data', (chunk) => (harperOutput += chunk));
 harper.stderr.on('data', (chunk) => (harperOutput += chunk));
 let harperExited = false;
 harper.on('exit', () => (harperExited = true));
+// Without an 'error' listener a failed spawn (e.g. harper not on PATH) is an unhandled
+// exception that skips cleanup entirely.
+harper.on('error', (error) => {
+	harperOutput += `\nFailed to spawn ${harperBin}: ${error.message}\n`;
+	harperExited = true;
+});
 
 function cleanup() {
 	try {
-		process.kill(-harper.pid, 'SIGTERM');
+		if (harper.pid) {
+			process.kill(-harper.pid, 'SIGTERM');
+		}
 	} catch {}
 	try {
 		fs.rmSync(scratchDir, { recursive: true, force: true });
@@ -93,6 +102,17 @@ function cleanup() {
 		fs.rmSync(resourcePath, { force: true });
 	} catch {}
 }
+
+// Harper runs in its own process group (detached), so it outlives this process unless an
+// interrupted run (Ctrl+C, CI cancellation) kills it explicitly.
+process.on('SIGINT', () => {
+	cleanup();
+	process.exit(130);
+});
+process.on('SIGTERM', () => {
+	cleanup();
+	process.exit(143);
+});
 
 async function waitForServer(timeoutMs = 180_000) {
 	const deadline = Date.now() + timeoutMs;
@@ -113,18 +133,25 @@ async function waitForServer(timeoutMs = 180_000) {
 const failures = [];
 
 async function check(name, requestPath, assert) {
-	const response = await fetch(baseUrl + requestPath, {
-		headers: { Authorization: credentials },
-		signal: AbortSignal.timeout(10_000),
-	});
-	const body = await response.text();
-	const problem = assert(response, body);
+	let problem;
+	try {
+		const response = await fetch(baseUrl + requestPath, {
+			headers: { Authorization: credentials },
+			signal: AbortSignal.timeout(10_000),
+		});
+		const body = await response.text();
+		problem = assert(response, body);
+		if (problem) {
+			problem += `\n  GET ${requestPath} -> ${response.status} ${response.headers.get('content-type')}\n  body: ${
+				body.slice(0, 200)
+			}`;
+		}
+	} catch (error) {
+		// A request-level failure shouldn't abort the remaining checks.
+		problem = `GET ${requestPath} failed: ${error.message}`;
+	}
 	if (problem) {
-		failures.push(
-			`${name}: ${problem}\n  GET ${requestPath} -> ${response.status} ${
-				response.headers.get('content-type')
-			}\n  body: ${body.slice(0, 200)}`,
-		);
+		failures.push(`${name}: ${problem}`);
 		console.error(`✗ ${name}`);
 	} else {
 		console.log(`✓ ${name}`);
