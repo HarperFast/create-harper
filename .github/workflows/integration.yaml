@@ -139,4 +139,15 @@ jobs:
             ${{ matrix.pkg-manager }} run build
           fi
 
+          # Boot the generated app under a real Harper instance and verify both the REST
+          # resources and the frontend are reachable (guards against the static handler
+          # swallowing REST GETs). Once per template — the package manager doesn't matter here.
+          if [ "${{ matrix.pkg-manager }}" = "npm" ]; then
+            echo "Installing Harper..."
+            npm install --global harper
+
+            echo "Running runtime smoke test..."
+            node "$REPO_PATH/template.tests/runtimeSmoke.js" .
+          fi
+
           echo "Integration test passed for ${{ matrix.pkg-manager }} with ${{ matrix.template }}!"
