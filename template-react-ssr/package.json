@@ -13,7 +13,8 @@
 		"test": "node --test test/*.test.js",
 		"test:watch": "node --watch --test test/*.test.js",
 		"build": "vite build",
-		"deploy": "harper deploy_component . restart=true replicated=true"
+		"deploy": "harper deploy by_ref=true restart=true replicated=true",
+		"deploy:setup": "harper deploy setup=true"
 	},
 	"dependencies": {
 		"@harperfast/schema-codegen": "^1.0.10",
