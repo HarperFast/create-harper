@@ -69,15 +69,25 @@ describe('Integration tests', () => {
 			const templateDir = path.resolve(root, `template-${template}`);
 			if (fs.existsSync(path.join(templateDir, '_env'))) {
 				expect(fs.existsSync(path.join(targetDir, '.env'))).toBe(true);
+				// Credentials come from `harper login` (local) or GitHub Actions secrets (CI); the
+				// scaffolded .env only selects the target cluster.
 				const envContent = fs.readFileSync(path.join(targetDir, '.env'), 'utf-8');
-				expect(envContent).toContain('CLI_TARGET_USERNAME');
-				expect(envContent).toContain('CLI_TARGET_PASSWORD');
 				expect(envContent).toContain('CLI_TARGET');
+				expect(envContent).not.toContain('CLI_TARGET_USERNAME');
+				expect(envContent).not.toContain('CLI_TARGET_PASSWORD');
 			}
 
 			if (fs.existsSync(path.join(templateDir, '_env.example'))) {
 				expect(fs.existsSync(path.join(targetDir, '.env.example'))).toBe(true);
 			}
+
+			// Deploy-by-reference scaffolding: the workflow must live under `.github/workflows/`
+			// (plural — GitHub only runs workflows there), and deploy is driven by the native harper CLI
+			// (no per-project scripts).
+			expect(fs.existsSync(path.join(targetDir, '.github', 'workflows', 'deploy.yaml'))).toBe(true);
+			expect(fs.existsSync(path.join(targetDir, 'scripts', 'deploy.mjs'))).toBe(false);
+			expect(pkgJson.scripts.deploy).toBe('harper deploy by_ref=true restart=true replicated=true');
+			expect(pkgJson.scripts['deploy:setup']).toBe('harper deploy setup=true');
 		});
 	}
 });

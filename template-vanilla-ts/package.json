@@ -12,7 +12,8 @@
 		"format": "prettier --write .",
 		"test": "node --test test/*.test.js",
 		"test:watch": "node --watch --test test/*.test.js",
-		"deploy": "harper deploy_component . restart=true replicated=true"
+		"deploy": "harper deploy by_ref=true restart=true replicated=true",
+		"deploy:setup": "harper deploy setup=true"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
