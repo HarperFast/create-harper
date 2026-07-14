@@ -29,7 +29,7 @@ jobs:
           fetch-depth: 1
       - name: Run Junie
         id: junie
-        uses: JetBrains/junie-github-action@5c575d810e873227016d6963f830db02198fef0f # v1.5.6
+        uses: JetBrains/junie-github-action@8c16bc017475d62fe7911701164cb5ceef999f02 # v1.5.8
         with:
           junie_api_key: ${{ secrets.JUNIE_API_KEY }}
           use_single_comment: true
