@@ -103,7 +103,7 @@ Take a look at the [default configuration](./config.yaml), which specifies how f
 
 ## Deployment
 
-Deploy your app to a Harper cluster **by reference**: rather than uploading a snapshot of your files, you tell Harper which commit of your GitHub repository to run, pinned by its exact commit SHA. Re-deploying the same commit is repeatable, and rolling back is just deploying an older commit.
+Deploy your app to a Harper cluster **by reference**: instead of uploading a snapshot of your files, you tell Harper which commit of your GitHub repository to run, pinned by its exact commit SHA. Re-deploying the same commit is repeatable, and rolling back is just deploying an older commit.
 
 First, head to [https://fabric.harper.fast/](https://fabric.harper.fast/), log in, and create a cluster. Then log your local CLI in to it:
 
@@ -111,15 +111,17 @@ First, head to [https://fabric.harper.fast/](https://fabric.harper.fast/), log i
 harper login
 ```
 
-### One-time setup
+### One-time setup (private repos)
 
-So the cluster can clone your (private) repository, register a read-only SSH **deploy key**:
+So the cluster can clone your private repository, give it a read-only token — sealed on your machine, stored encrypted:
 
 ```sh
 npm run deploy:setup
 ```
 
-This generates the key, registers it with your cluster, and prints a public key to add to your repository under **Settings → Deploy keys**. A deploy key is scoped to this one repository and keeps working even if the person who created it leaves. (It uses Harper's `add_ssh_key`, available on Harper Pro / Fabric.)
+This fetches your cluster's public key, has you provide a GitHub token (a fine-grained PAT with **Contents: Read-only**, or your `gh` CLI session), **encrypts it locally**, and stores only the ciphertext in the cluster's secret store. The plaintext never leaves your machine; the cluster decrypts it in memory only while cloning. Because the token is durable, rollbacks keep working for as long as it's valid.
+
+> Public repo? Skip this step and drop `credential=github.com` from the `deploy` script — no credential is needed.
 
 ### Deploy
 
@@ -127,7 +129,7 @@ This generates the key, registers it with your cluster, and prints a public key 
 npm run deploy
 ```
 
-This deploys the current commit — commit and push first, since the cluster clones from GitHub and only sees pushed commits. To roll back, check out an older commit and run it again.
+This deploys the current commit over `git+https` — commit and push first, since the cluster clones from GitHub and only sees pushed commits. To roll back, check out an older commit and run it again.
 
 ### Deploy automatically from CI
 
@@ -143,12 +145,11 @@ Add these repository secrets first, under **Settings → Secrets and variables �
 - `CLI_TARGET` — your cluster's operations URL (e.g. `https://your-cluster.harperdb.io:9925`)
 - `HARPER_CLI_USERNAME` and `HARPER_CLI_PASSWORD` — a cluster user allowed to deploy
 
-### Other options
+The clone credential already lives in the cluster from `npm run deploy:setup`, so CI never handles a token itself.
 
-- **Public repository?** Skip the deploy key and let Harper clone over HTTPS (`git+https://…#<sha>`) with no cluster-side credentials.
-- **Prefer to build in CI** instead of on your Harper nodes? Publish your app to a registry such as GitHub Packages and deploy it by version using `registryAuth`.
+### Private npm dependencies
 
-See the [Harper deployment docs](https://docs.harperdb.io/reference/v5/components/applications#deploy_component) for both.
+If your app depends on private npm packages, run `npm run deploy:setup` again and choose the npm registry — the same sealed-token flow, stored as a separate credential.
 
 ## Keep Going!
 

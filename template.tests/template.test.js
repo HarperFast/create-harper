@@ -86,7 +86,9 @@ describe('Integration tests', () => {
 			// (no per-project scripts).
 			expect(fs.existsSync(path.join(targetDir, '.github', 'workflows', 'deploy.yaml'))).toBe(true);
 			expect(fs.existsSync(path.join(targetDir, 'scripts', 'deploy.mjs'))).toBe(false);
-			expect(pkgJson.scripts.deploy).toBe('harper deploy by_ref=true restart=true replicated=true');
+			expect(pkgJson.scripts.deploy).toBe(
+				'harper deploy by_ref=true credential=github.com restart=true replicated=true',
+			);
 			expect(pkgJson.scripts['deploy:setup']).toBe('harper deploy setup=true');
 		});
 	}
