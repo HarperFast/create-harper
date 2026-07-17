@@ -13,7 +13,7 @@
 		"test": "node --test test/*.test.ts",
 		"test:watch": "node --watch --test test/*.test.ts",
 		"build": "vite build",
-		"deploy": "harper deploy by_ref=true restart=true replicated=true",
+		"deploy": "harper deploy by_ref=true credential=github.com restart=true replicated=true",
 		"deploy:setup": "harper deploy setup=true"
 	},
 	"dependencies": {
