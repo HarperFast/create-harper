@@ -44,7 +44,8 @@ jobs:
       - name: Run lint
         run: npm run lint
       - name: Install Harper CLI
-        run: npm install -g harper
+        # Pinned to the 5.2 line (where deploy-by-reference lands); ^5.2.0 blocks a breaking 6.x bump.
+        run: npm install -g harper@^5.2.0
       - name: Deploy
         run: npm run deploy
         env:
