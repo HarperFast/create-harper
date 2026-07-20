@@ -36,7 +36,6 @@
 			"groupSlug": "all-minor-patch",
 			"matchPackageNames": ["dprint", "oxfmt"],
 			"matchCurrentVersion": "< 1.0.0",
-			"matchUpdateTypes": ["minor", "patch"],
 			"automerge": true
 		}
 	]
