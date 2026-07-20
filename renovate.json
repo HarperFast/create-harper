@@ -29,6 +29,15 @@
 			],
 			"matchCurrentVersion": "!/^0/",
 			"automerge": true
+		},
+		{
+			"description": "Treat pre-1.0 dprint/oxfmt (stable formatters) as non-major so bumps group with other deps; regroups normally once they reach 1.0.0+.",
+			"groupName": "all non-major dependencies",
+			"groupSlug": "all-minor-patch",
+			"matchPackageNames": ["dprint", "oxfmt"],
+			"matchCurrentVersion": "< 1.0.0",
+			"matchUpdateTypes": ["minor", "patch"],
+			"automerge": true
 		}
 	]
 }
