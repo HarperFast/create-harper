@@ -1,0 +1,55 @@
+# Deploys this app to your Harper cluster by *reference* via `harper deploy by_ref=true`
+# (`npm run deploy`).
+#
+# Runs on a version tag (e.g. `git tag v1.2.3 && git push --tags`) or manually. The Harper cluster
+# fetches the tagged commit over git+https (pinned by its exact SHA, so peers can't diverge on a
+# moved tag), authenticating a private clone with the encrypted token you sealed once via
+# `npm run deploy:setup`. The credential lives on the cluster, so this workflow handles no token.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   CLI_TARGET           your cluster's operations URL, e.g. https://my-cluster.harperdb.io:9925
+#   HARPER_CLI_USERNAME  a cluster user allowed to deploy
+#   HARPER_CLI_PASSWORD  that user's password
+#
+# Public repo? Drop `credential=github.com` from the `deploy` script — no cluster-side auth needed.
+# See the "Deployment" section of the README for details.
+name: Deploy to Harper Fabric
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      - name: Set up Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          cache: 'npm'
+          node-version-file: '.nvmrc'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run unit tests
+        run: npm test
+      - name: Run lint
+        run: npm run lint
+      - name: Install Harper CLI
+        # Pinned to the 5.2 line (where deploy-by-reference lands); ^5.2.0 blocks a breaking 6.x bump.
+        run: npm install -g harper@^5.2.0
+      - name: Deploy
+        run: npm run deploy
+        env:
+          CLI_TARGET: ${{ secrets.CLI_TARGET }}
+          HARPER_CLI_USERNAME: ${{ secrets.HARPER_CLI_USERNAME }}
+          HARPER_CLI_PASSWORD: ${{ secrets.HARPER_CLI_PASSWORD }}

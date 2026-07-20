@@ -111,19 +111,53 @@ Take a look at the [default configuration](./config.yaml), which specifies how f
 
 ## Deployment
 
-When you are ready, head to [https://fabric.harper.fast/](https://fabric.harper.fast/), log in to your account, and create a cluster.
+Deploy your app to a Harper cluster **by reference**: instead of uploading a snapshot of your files, you tell Harper which commit of your GitHub repository to run, pinned by its exact commit SHA. Re-deploying the same commit is repeatable, and rolling back is just deploying an older commit.
 
-Come back and log in your local CLI to your cluster:
+First, head to [https://fabric.harper.fast/](https://fabric.harper.fast/), log in, and create a cluster. Then log your local CLI in to it:
 
 ```sh
 harper login
 ```
 
-Then you can deploy your app to your cluster:
+### One-time setup (private repos)
+
+So the cluster can clone your private repository, give it a read-only token — sealed on your machine, stored encrypted:
+
+```sh
+npm run deploy:setup
+```
+
+This fetches your cluster's public key, has you provide a GitHub token (a fine-grained PAT with **Contents: Read-only**, or your `gh` CLI session), **encrypts it locally**, and stores only the ciphertext in the cluster's secret store. The plaintext never leaves your machine; the cluster decrypts it in memory only while cloning. Because the token is durable, rollbacks keep working for as long as it's valid.
+
+> Public repo? Skip this step and drop `credential=github.com` from the `deploy` script — no credential is needed.
+
+### Deploy
 
 ```sh
 npm run deploy
 ```
+
+This deploys the current commit over `git+https` — commit and push first, since the cluster clones from GitHub and only sees pushed commits. To roll back, check out an older commit and run it again.
+
+### Deploy automatically from CI
+
+The included [GitHub Actions workflow](./.github/workflows/deploy.yaml) deploys whenever you push a version tag:
+
+```sh
+git tag v1.0.0
+git push --tags
+```
+
+Add these repository secrets first, under **Settings → Secrets and variables → Actions**:
+
+- `CLI_TARGET` — your cluster's operations URL (e.g. `https://your-cluster.harperdb.io:9925`)
+- `HARPER_CLI_USERNAME` and `HARPER_CLI_PASSWORD` — a cluster user allowed to deploy
+
+The clone credential already lives in the cluster from `npm run deploy:setup`, so CI never handles a token itself.
+
+### Private npm dependencies
+
+If your app depends on private npm packages, run `npm run deploy:setup` again and choose the npm registry — the same sealed-token flow, stored as a separate credential.
 
 ## Keep Going!
 

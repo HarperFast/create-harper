@@ -19,11 +19,18 @@ import { copyDir } from '../lib/fs/copyDir.js';
 			'template-vue-ts-ssr',
 		],
 	};
+	// template-early-hints is a legacy `harperdb` EdgeWorker example (not published via
+	// `npm create harper`), so it is intentionally excluded from the deploy-by-reference
+	// migration — it must not receive the `_github` deploy workflow that targets the modern
+	// `harper` CLI. It still gets every other shared file.
+	const excludeGithubForEarlyHints = (src) => !src.split(path.sep).includes('_github');
+
 	for (const key in copiesToMake) {
 		const fromShared = path.resolve(import.meta.dirname, key);
 		for (const targetTemplate of copiesToMake[key]) {
 			const toTemplate = path.resolve(import.meta.dirname, '..', targetTemplate);
-			copyDir(fromShared, toTemplate);
+			const filter = targetTemplate === 'template-early-hints' ? excludeGithubForEarlyHints : undefined;
+			copyDir(fromShared, toTemplate, filter);
 		}
 	}
 })();
