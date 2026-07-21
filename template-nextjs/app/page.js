@@ -1,55 +1,55 @@
-import Link from 'next/link';
+import { getCount, increment } from './actions';
 
-export default function Page() {
+// Read the count fresh on every request rather than caching it at build time.
+export const dynamic = 'force-dynamic';
+
+export default async function Page() {
+	const count = await getCount();
+
 	return (
-		<section
+		<main
 			style={{
-				minHeight: '100%',
+				minHeight: '100vh',
 				display: 'flex',
 				flexDirection: 'column',
 				justifyContent: 'center',
 				alignItems: 'center',
-				padding: '3rem 0 2rem',
+				gap: '1rem',
+				padding: '2rem',
 				textAlign: 'center',
-				backgroundColor: '#f8fafc',
-				flex: 1,
 			}}
 		>
-			<h1
-				style={{
-					fontSize: '2.5rem',
-					fontWeight: '700',
-					margin: '0 0 1rem',
-					color: '#1e293b',
-					letterSpacing: '-0.025em',
-				}}
-			>
-				Doggy Management System
-			</h1>
-			<p style={{ fontSize: '1.125rem', color: '#64748b', margin: '0 0 2rem', maxWidth: '600px' }}>
-				An application for managing dog records. View, add, and organize your canine database with ease.
+			<h1 style={{ margin: 0 }}>Next.js + Harper</h1>
+			<p style={{ margin: 0, color: '#64748b', maxWidth: '32rem' }}>
+				This counter is stored in a Harper table. Clicking the button calls a{' '}
+				<a href="https://nextjs.org/docs/app/building-your-application/data-fetching/server-actions-and-mutations">
+					server action
+				</a>{' '}
+				that reads and writes the table directly — no separate API.
 			</p>
-
-			<div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-				<Link
-					href="/dogs"
+			{
+				/* A plain form calling a server action: no client component needed, and the browser
+			    shows its own pending state while the action runs. */
+			}
+			<form action={increment}>
+				<button
+					type="submit"
 					style={{
-						backgroundColor: '#403b8a',
-						color: 'white',
-						padding: '1rem 2rem',
-						borderRadius: '8px',
-						textDecoration: 'none',
 						fontSize: '1.125rem',
-						fontWeight: '600',
-						boxShadow: '0 4px 6px rgba(64, 59, 138, 0.25)',
+						padding: '0.75rem 1.5rem',
+						borderRadius: '8px',
+						border: '1px solid #cbd5e1',
+						background: '#403b8a',
+						color: 'white',
+						cursor: 'pointer',
 					}}
 				>
-					🐕 Manage Dogs →
-				</Link>
-				<p style={{ fontSize: '0.875rem', color: '#94a3b8', margin: 0 }}>
-					Add, view, and delete dog records in real time
-				</p>
-			</div>
-		</section>
+					count is {count}
+				</button>
+			</form>
+			<p style={{ margin: 0, color: '#94a3b8', fontSize: '0.875rem' }}>
+				Edit the schema in <code>schema.graphql</code> and the logic in <code>app/actions.js</code>.
+			</p>
+		</main>
 	);
 }

@@ -1,7 +1,4 @@
-type Dog @table @export {
+type Count @table @export {
 	id: ID @primaryKey
-	name: String
-	breed: String
-	age: Int
-	color: String
+	value: Int
 }
