@@ -1,12 +1,13 @@
 'use server';
 
 /* global tables */
-import 'harper';
 import { revalidatePath } from 'next/cache';
 
 // Server actions run *inside* Harper, so they read and write tables directly through the `tables`
-// global — no network round-trip to a separate API. Importing 'harper' makes the runtime globals
-// available. Because these are server actions, both server and client components can call them.
+// global — no network round-trip to a separate API. Harper injects `tables` into server-side code,
+// so use it directly; do NOT add a top-level `import 'harper'` — that import runs during the
+// Next.js production build and conflicts with the running database. Because these are server
+// actions, both server and client components can call them.
 
 export async function listDogs() {
 	const dogs = [];

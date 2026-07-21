@@ -25,6 +25,3 @@ declare global {
 		Dog: HarperTable<DogRecord>;
 	};
 }
-
-// `import 'harper'` loads the runtime globals as a side effect; it exposes no typed exports here.
-declare module 'harper' {}
