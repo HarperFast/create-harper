@@ -20,12 +20,6 @@ on:
   # a generated app. Opens an issue on failure (see the notify job).
   schedule:
     - cron: '0 7 * * *'
-  # TEMPORARY (remove before merge): validate this workflow on PR #124. Runs a single cheap cell
-  # (react-ts @ latest) — see the pull_request branch in the matrix step. workflow_dispatch is not
-  # dispatchable until this file lands on the default branch, so this is the only way to exercise
-  # it on real runners pre-merge.
-  pull_request:
-    branches: [main]
 
 concurrency:
   group: e2e-${{ github.ref }}-${{ github.event_name }}
@@ -42,22 +36,17 @@ jobs:
       - id: set
         shell: bash
         run: |
-          # Templates: on a PR (temporary), one cheap cell; a manually chosen single template;
-          # otherwise a representative subset — one per frontend family plus one SSR variant. The
-          # package manager is irrelevant to Harper's API surface, so (unlike the PR integration
-          # test) this axis is npm-only.
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo 'templates=["react-ts"]' >> "$GITHUB_OUTPUT"
-          elif [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.template }}" != "all" ]; then
+          # Templates: a manually chosen single template, otherwise a representative subset —
+          # one per frontend family plus one SSR variant. The package manager is irrelevant to
+          # Harper's API surface, so (unlike the PR integration test) this axis is npm-only.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.template }}" != "all" ]; then
             echo "templates=[\"${{ inputs.template }}\"]" >> "$GITHUB_OUTPUT"
           else
             echo 'templates=["vanilla-ts","react-ts","vue-ts","react-ts-ssr"]' >> "$GITHUB_OUTPUT"
           fi
-          # Versions: a PR (temporary) tests latest only; a git ref is a single (source) cell; a
-          # dispatched npm spec; otherwise latest + next for the nightly canary.
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo 'versions=["latest"]' >> "$GITHUB_OUTPUT"
-          elif [ -n "${{ inputs.harper-ref }}" ]; then
+          # Versions: a single cell when building from a git ref (the ref is the only dimension),
+          # the dispatched npm spec, otherwise latest + next for the nightly canary.
+          if [ -n "${{ inputs.harper-ref }}" ]; then
             echo 'versions=["(source)"]' >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo 'versions=["${{ inputs.harper-version }}"]' >> "$GITHUB_OUTPUT"
