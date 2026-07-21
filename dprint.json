@@ -18,7 +18,8 @@
 	},
 	"excludes": [
 		"**/node_modules",
-		"template-early-hints/schemas/schema.graphql"
+		"template-early-hints/schemas/schema.graphql",
+		"template.tests/e2e/fixtures"
 	],
 	"plugins": [
 		"https://plugins.dprint.dev/typescript-0.95.13.wasm",
