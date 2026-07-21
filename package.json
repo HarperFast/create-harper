@@ -31,7 +31,9 @@
 		"template-vue/",
 		"template-vue-ts/",
 		"template-vue-ssr/",
-		"template-vue-ts-ssr/"
+		"template-vue-ts-ssr/",
+		"template-nextjs/",
+		"template-nextjs-ts/"
 	],
 	"scripts": {
 		"commitlint": "commitlint --edit",

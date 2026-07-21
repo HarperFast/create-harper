@@ -1,4 +1,4 @@
-export type Framework = 'vanilla' | 'react' | 'vue';
+export type Framework = 'vanilla' | 'react' | 'vue' | 'nextjs';
 
 export type TemplateName =
 	| 'vanilla-ts'
@@ -10,7 +10,9 @@ export type TemplateName =
 	| 'vue-ts'
 	| 'vue'
 	| 'vue-ts-ssr'
-	| 'vue-ssr';
+	| 'vue-ssr'
+	| 'nextjs-ts'
+	| 'nextjs';
 
 export interface TemplateInfo {
 	/** The canonical template name (e.g. 'vanilla', 'react-ts'). Used to scaffold. */
@@ -51,4 +53,6 @@ export declare const templateNames: readonly [
 	'vue',
 	'vue-ts-ssr',
 	'vue-ssr',
+	'nextjs-ts',
+	'nextjs',
 ];
