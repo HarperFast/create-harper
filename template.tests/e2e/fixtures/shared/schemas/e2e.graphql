@@ -1,0 +1,5 @@
+type E2eWidget @table @export {
+	id: ID @primaryKey
+	name: String
+	quantity: Int @indexed
+}

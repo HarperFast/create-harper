@@ -1,6 +1,12 @@
 .DS_Store
 .temp-integration-tests
 
+# Playwright e2e artifacts
+/test-results/
+/playwright-report/
+/blob-report/
+/playwright/.cache/
+
 #
 # https://raw.githubusercontent.com/github/gitignore/refs/heads/main/Node.gitignore
 #
