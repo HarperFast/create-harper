@@ -12,10 +12,15 @@
 graphqlSchema:
   files: 'schema.graphql'
 
-# Runs the Next.js app as a Harper component. Under `harper dev` it serves the Next.js dev server
-# with hot-module reloading; under `harper run` (and `harper deploy`) it builds and serves the app.
-# Server-side code (server actions and server components) reads and writes Harper tables directly
-# through the injected `tables` global — see app/actions.js. Because this plugin owns HTTP routing
-# for the app, there is no `static` or `rest` handler here.
+# Runs the Next.js app as a Harper component. The npm scripts run `next build` first, then this
+# component serves the prebuilt output (see the `prebuilt` note below); `harper dev` also serves it
+# with hot-module reloading. Server-side code (server actions and server components) reads and writes
+# Harper tables directly through the injected `tables` global — see app/actions.js. Because this
+# plugin owns HTTP routing for the app, there is no `static` or `rest` handler here.
 '@harperfast/nextjs':
   package: '@harperfast/nextjs'
+  # Serve a prebuilt `.next` (the npm scripts run `next build` for you) instead of building on
+  # startup. On a multi-threaded Harper cluster the on-startup build races across worker threads and
+  # fails, so the app never serves; prebuilt avoids that. See
+  # https://github.com/HarperFast/nextjs/issues/52
+  prebuilt: true

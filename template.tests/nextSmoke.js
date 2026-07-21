@@ -2,13 +2,17 @@
 /**
  * Runtime smoke test for a generated Next.js-on-Harper template application.
  *
- * The `@harperfast/nextjs` plugin owns HTTP routing and builds the Next.js app on startup (under
- * `harper run`), so these apps don't expose the REST resource surface that runtimeSmoke.js checks.
- * This variant boots the app under a real Harper instance (isolated root, throwaway admin user)
- * and verifies the two things every Next.js template must do:
+ * The `@harperfast/nextjs` plugin owns HTTP routing, so these apps don't expose the REST resource
+ * surface that runtimeSmoke.js checks. The templates deploy prebuilt (`prebuilt: true` + a `.next`
+ * produced by `next build`, which the app's own `build` script runs before this test), so `harper
+ * run` serves that build rather than compiling on startup. This variant boots the app under a real
+ * Harper instance (isolated root, throwaway admin user) and verifies the two things every Next.js
+ * template must do:
  *
- *   1. The on-startup production build succeeds and the app is served — `GET /` returns HTML.
- *      (A failed build makes the plugin skip serving, so every route 404s; this catches that.)
+ *   1. The prebuilt app is served — `GET /` returns HTML. (If `.next` is missing, or a regression
+ *      reintroduces an on-startup build that races across worker threads and fails, the plugin
+ *      skips serving and every route 404s; this catches that. Harper runs multi-threaded here on
+ *      purpose so that regression would surface.)
  *   2. Server-side Harper access works — the home page reads the `Count` table via a server
  *      action and renders the persisted count, so the HTML contains "count is".
  *
@@ -53,9 +57,6 @@ const harper = spawn(harperBin, ['run', appDir], {
 		ROOTPATH: rootPath,
 		HTTP_PORT: String(httpPort),
 		OPERATIONSAPI_NETWORK_PORT: String(opsPort),
-		// Build the Next.js app single-threaded so the smoke is deterministic (the plugin otherwise
-		// builds once and dedupes across worker threads; one thread avoids any cross-thread races).
-		THREADS_COUNT: '1',
 	},
 	// Own process group so cleanup can kill Harper's worker threads/children along with it.
 	detached: true,
