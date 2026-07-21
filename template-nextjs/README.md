@@ -2,9 +2,9 @@
 
 A [Next.js](https://nextjs.org) app running on Harper via [`@harperfast/nextjs`](https://github.com/HarperFast/nextjs). Your new app is now ready for development!
 
-Because the app runs _inside_ Harper, server-side code (server actions and server components) can read and write your database directly through the [Resource API](https://docs.harperdb.io/docs/technical-details/reference/resources) — no separate API server and no network round-trip.
+Because the app runs _inside_ Harper, server-side code (server actions and server components) reads and writes your database directly through the injected `tables` global — no separate API server and no network round-trip.
 
-Here's what you should do next:
+The starter ships one tiny end-to-end example: a counter stored in a Harper table, read by a server component and incremented by a server action.
 
 ## Installation
 
@@ -24,19 +24,11 @@ npm run dev
 
 Then open [http://localhost:9926](http://localhost:9926) 🎉
 
-The included **Doggy Management System** demo shows the whole pattern end to end:
-
-- [`schema.graphql`](./schema.graphql) defines a `Dog` table.
-- [`app/actions.js`](./app/actions.js) defines server actions (`listDogs`, `getDog`, `createDog`, `deleteDog`) that talk to the `tables` global.
-- [`app/dogs/page.js`](./app/dogs/page.js) (a server component) and [`app/ui/DeleteButton.js`](./app/ui/DeleteButton.js) (a client component) both call those same actions.
+Click the button — the count persists in Harper across reloads and restarts.
 
 ### Define Your Schema
 
-1. Edit [`schema.graphql`](./schema.graphql) (or add more `.graphql` files).
-2. Craft your schema by hand — every `@table` becomes available on the `tables` global.
-3. Save your changes.
-
-These schemas are the heart of a Harper app, specifying which tables you want and what attributes they should have.
+Your tables live in [`schema.graphql`](./schema.graphql). The starter defines a single `Count` table; add your own `@table` types there and they become available on the `tables` global.
 
 ### Access Harper From Server Code
 
@@ -45,18 +37,23 @@ Harper injects a `tables` global into server-side code, so server actions and se
 ```js
 'use server';
 
-export async function listDogs() {
-	const dogs = [];
-	for await (const dog of tables.Dog.search()) {
-		dogs.push(dog);
-	}
-	return dogs;
+export async function getCount() {
+	const record = await tables.Count.get('count');
+	return record?.value ?? 0;
+}
+
+export async function increment() {
+	const current = await tables.Count.get('count');
+	await tables.Count.put('count', {
+		id: 'count',
+		value: (current?.value ?? 0) + 1,
+	});
 }
 ```
 
 > **Don't** add a top-level `import 'harper'` in these modules. It runs during the Next.js production build (when Next collects page data) and conflicts with the running database — use the injected `tables` global instead.
 
-Following Next.js best practices, put this data access in **server actions** so that both server _and_ client components can share the same functions.
+Put data access in **server actions** (see [`app/actions.js`](./app/actions.js)) so that both server _and_ client components can share the same functions. Any action a client can reach is a public endpoint, so add your own authorization checks before shipping mutations that matter.
 
 ## Deployment
 
@@ -74,7 +71,7 @@ Then deploy your app:
 npm run deploy
 ```
 
-`npm run deploy` uploads the component and Harper builds the Next.js app on the server when it starts — no local build required. For faster startups you can instead deploy a prebuilt app: run it once with `npm run dev` (so Harper links its runtime into `node_modules`), then `npm run build`, add `prebuilt: true` under `@harperfast/nextjs` in [`config.yaml`](./config.yaml), and deploy.
+`npm run deploy` uploads the component and Harper builds the Next.js app on the server when it starts — no local build required.
 
 ## Keep Going!
 
