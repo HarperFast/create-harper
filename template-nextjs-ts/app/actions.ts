@@ -23,9 +23,10 @@ export async function getDog(id: string): Promise<DogRecord | undefined> {
 export async function createDog(formData: FormData): Promise<void> {
 	const name = formData.get('name');
 	const breed = formData.get('breed');
-	const age = Number(formData.get('age'));
+	const age = formData.get('age');
 	const color = formData.get('color');
 
+	// Check the raw values so a valid age of 0 (a puppy!) isn't rejected as "missing".
 	if (!name || !breed || !age || !color) {
 		throw new Error('All fields are required');
 	}
@@ -33,7 +34,7 @@ export async function createDog(formData: FormData): Promise<void> {
 	await tables.Dog.create({
 		name: String(name),
 		breed: String(breed),
-		age,
+		age: Number(age),
 		color: String(color),
 	});
 	revalidatePath('/dogs');
