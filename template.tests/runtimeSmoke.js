@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Runtime smoke test for a generated template application.
+ * Runtime smoke test for a generated template application — the fast check that runs on every PR.
  *
  * Boots the app under a real Harper instance (isolated root, throwaway admin user) and verifies
  * the HTTP surface every template must provide:
@@ -10,34 +10,24 @@
  *      which ran before the REST handler and answered resource GETs with index.html.
  *   2. The frontend is served — `GET /` returns the app's HTML.
  *
+ * For the fuller, version-parameterized end-to-end suite (schema CRUD, custom resources, and a
+ * frontend component that consumes the API in a browser), see template.tests/e2e/.
+ *
  * Usage: node template.tests/runtimeSmoke.js <app-dir>
  *
  * The app must already be installed (and built, for templates with a build step). Requires the
  * `harper` CLI on PATH (or set HARPER_BIN). POSIX only. Ports override via SMOKE_HTTP_PORT /
  * SMOKE_OPS_PORT.
  */
-import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { bootHarper } from './e2e/harper.js';
 
 const appDir = process.argv[2] && path.resolve(process.argv[2]);
 if (!appDir || !fs.existsSync(path.join(appDir, 'config.yaml'))) {
 	console.error('Usage: node template.tests/runtimeSmoke.js <app-dir> (must contain a config.yaml)');
 	process.exit(2);
 }
-
-const httpPort = Number(process.env.SMOKE_HTTP_PORT ?? 19926);
-const opsPort = Number(process.env.SMOKE_OPS_PORT ?? 19925);
-const baseUrl = `http://127.0.0.1:${httpPort}`;
-const credentials = `Basic ${Buffer.from('smoke-admin:smoke-password').toString('base64')}`;
-
-// Harper's operations server listens on a unix domain socket inside ROOTPATH, and socket paths
-// are limited to ~104 characters on macOS — so keep the scratch root short and in /tmp.
-const scratchDir = fs.mkdtempSync('/tmp/harper-smoke-');
-const rootPath = path.join(scratchDir, 'hdb');
-const homeDir = path.join(scratchDir, 'home');
-fs.mkdirSync(rootPath);
-fs.mkdirSync(homeDir);
 
 // The REST resource the test queries. Written into the app like a user would add one; the
 // extension must match the template's jsResource glob (`resources/*.ts` in TS templates).
@@ -57,86 +47,25 @@ fs.writeFileSync(
 `,
 );
 
-const harperBin = process.env.HARPER_BIN ?? 'harper';
-console.log(`Starting ${harperBin} run ${appDir} (root: ${rootPath}, port: ${httpPort})...`);
-const harper = spawn(harperBin, ['run', appDir], {
-	env: {
-		...process.env,
-		// HOME controls where Harper looks for the boot-properties file of an existing
-		// installation; pointing it at a scratch dir guarantees an isolated, fresh install.
-		HOME: homeDir,
-		TC_AGREEMENT: 'yes',
-		HDB_ADMIN_USERNAME: 'smoke-admin',
-		HDB_ADMIN_PASSWORD: 'smoke-password',
-		ROOTPATH: rootPath,
-		HTTP_PORT: String(httpPort),
-		OPERATIONSAPI_NETWORK_PORT: String(opsPort),
-	},
-	// Own process group so cleanup can kill Harper's worker threads/children along with it.
-	detached: true,
-	stdio: ['ignore', 'pipe', 'pipe'],
-});
-
-let harperOutput = '';
-harper.stdout.on('data', (chunk) => (harperOutput += chunk));
-harper.stderr.on('data', (chunk) => (harperOutput += chunk));
-let harperExited = false;
-harper.on('exit', () => (harperExited = true));
-// Without an 'error' listener a failed spawn (e.g. harper not on PATH) is an unhandled
-// exception that skips cleanup entirely.
-harper.on('error', (error) => {
-	harperOutput += `\nFailed to spawn ${harperBin}: ${error.message}\n`;
-	harperExited = true;
-});
-
-function cleanup() {
-	try {
-		if (harper.pid) {
-			process.kill(-harper.pid, 'SIGTERM');
-		}
-	} catch {}
-	try {
-		fs.rmSync(scratchDir, { recursive: true, force: true });
-	} catch {}
-	try {
-		fs.rmSync(resourcePath, { force: true });
-	} catch {}
-}
-
-// Harper runs in its own process group (detached), so it outlives this process unless an
-// interrupted run (Ctrl+C, CI cancellation) kills it explicitly.
-process.on('SIGINT', () => {
-	cleanup();
-	process.exit(130);
-});
-process.on('SIGTERM', () => {
-	cleanup();
-	process.exit(143);
-});
-
-async function waitForServer(timeoutMs = 180_000) {
-	const deadline = Date.now() + timeoutMs;
-	while (Date.now() < deadline) {
-		if (harperExited) {
-			throw new Error(`Harper exited before the HTTP server came up. Output:\n${harperOutput.slice(-4000)}`);
-		}
+// bootHarper installs SIGINT/SIGTERM handlers that run onStop and kill the detached instance, so
+// removing the injected resource here covers the interrupt path too — no separate handlers needed.
+const harper = await bootHarper({
+	appDir,
+	onLog: (chunk) => process.stdout.write(chunk),
+	onStop: () => {
 		try {
-			await fetch(baseUrl, { signal: AbortSignal.timeout(2000) });
-			return;
-		} catch {
-			await new Promise((resolve) => setTimeout(resolve, 1000));
-		}
-	}
-	throw new Error(`Harper HTTP server did not come up within ${timeoutMs}ms. Output:\n${harperOutput.slice(-4000)}`);
-}
+			fs.rmSync(resourcePath, { force: true });
+		} catch {}
+	},
+});
 
 const failures = [];
 
 async function check(name, requestPath, assert) {
 	let problem;
 	try {
-		const response = await fetch(baseUrl + requestPath, {
-			headers: { Authorization: credentials },
+		const response = await fetch(harper.baseUrl + requestPath, {
+			headers: { Authorization: harper.authorization },
 			signal: AbortSignal.timeout(10_000),
 		});
 		const body = await response.text();
@@ -159,7 +88,9 @@ async function check(name, requestPath, assert) {
 }
 
 try {
-	await waitForServer();
+	// The HTTP port answers before the auth store is ready; wait until an authenticated GET of
+	// the injected resource succeeds before asserting.
+	await harper.waitUntilReady('/SmokeTestResource/');
 
 	// The regression check: a GET for an exported resource must reach the REST handler and
 	// return its JSON — not be swallowed by the static handler and answered with index.html.
@@ -187,7 +118,8 @@ try {
 } catch (error) {
 	failures.push(String(error?.message ?? error));
 } finally {
-	cleanup();
+	// stop() kills Harper, runs onStop (removes the injected resource), and clears its scratch dir.
+	harper.stop();
 }
 
 if (failures.length > 0) {

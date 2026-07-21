@@ -1,6 +1,6 @@
 {
 	"$schema": "./node_modules/oxlint/configuration_schema.json",
-	"ignorePatterns": [],
+	"ignorePatterns": ["template.tests/e2e/fixtures/**"],
 	"rules": {},
 	"overrides": [
 		{

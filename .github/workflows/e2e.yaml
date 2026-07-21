@@ -1,0 +1,119 @@
+name: E2E
+on:
+  # Run on demand against any Harper version (a dist-tag like `latest`/`next`, an explicit
+  # version like `5.2.0-beta.1`, or any npm spec — including a tarball or git url).
+  workflow_dispatch:
+    inputs:
+      harper-version:
+        description: 'Harper npm spec to test (latest, next, 5.2.0-beta.1, a tarball/git url, ...)'
+        default: 'latest'
+        required: true
+      harper-ref:
+        description: 'Build Harper from this git commit/branch/tag instead (overrides harper-version)'
+        default: ''
+        required: false
+      template:
+        description: 'Template to test, or "all" for the representative matrix'
+        default: 'all'
+        required: true
+  # Nightly canary against the leading edge — the early warning for Harper prereleases breaking
+  # a generated app. Opens an issue on failure (see the notify job).
+  schedule:
+    - cron: '0 7 * * *'
+
+concurrency:
+  group: e2e-${{ github.ref }}-${{ github.event_name }}
+  cancel-in-progress: true
+
+jobs:
+  matrix:
+    name: Compute matrix
+    runs-on: ubuntu-latest
+    outputs:
+      templates: ${{ steps.set.outputs.templates }}
+      versions: ${{ steps.set.outputs.versions }}
+    steps:
+      - id: set
+        shell: bash
+        run: |
+          # Templates: a manually chosen single template, otherwise a representative subset —
+          # one per frontend family plus one SSR variant. The package manager is irrelevant to
+          # Harper's API surface, so (unlike the PR integration test) this axis is npm-only.
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ] && [ "${{ inputs.template }}" != "all" ]; then
+            echo "templates=[\"${{ inputs.template }}\"]" >> "$GITHUB_OUTPUT"
+          else
+            echo 'templates=["vanilla-ts","react-ts","vue-ts","react-ts-ssr"]' >> "$GITHUB_OUTPUT"
+          fi
+          # Versions: a single cell when building from a git ref (the ref is the only dimension),
+          # the dispatched npm spec, otherwise latest + next for the nightly canary.
+          if [ -n "${{ inputs.harper-ref }}" ]; then
+            echo 'versions=["(source)"]' >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo 'versions=["${{ inputs.harper-version }}"]' >> "$GITHUB_OUTPUT"
+          else
+            echo 'versions=["latest","next"]' >> "$GITHUB_OUTPUT"
+          fi
+
+  e2e:
+    needs: matrix
+    name: ${{ matrix.template }} @ harper@${{ matrix.harper-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        template: ${{ fromJSON(needs.matrix.outputs.templates) }}
+        harper-version: ${{ fromJSON(needs.matrix.outputs.versions) }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: ~/.cache/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-playwright-
+
+      - name: Run E2E (${{ matrix.template }} against harper ${{ matrix.harper-version }})
+        run: |
+          if [ -n "${{ inputs.harper-ref }}" ]; then
+            node template.tests/e2e/run.js --template ${{ matrix.template }} --harper-ref "${{ inputs.harper-ref }}"
+          else
+            node template.tests/e2e/run.js --template ${{ matrix.template }} --harper "${{ matrix.harper-version }}"
+          fi
+
+  notify:
+    needs: e2e
+    # Only the scheduled canary auto-files an issue; manual runs surface in the Actions UI.
+    if: ${{ failure() && github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      GH_REPO: ${{ github.repository }}
+    steps:
+      - name: File an issue for the failing canary (deduped)
+        run: |
+          gh label create e2e-canary --description "Nightly E2E canary failures" --color B60205 --force || true
+          open=$(gh issue list --label e2e-canary --state open --json number --jq 'length')
+          run_url="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          if [ "$open" = "0" ]; then
+            gh issue create --label e2e-canary \
+              --title "E2E canary failing against a Harper prerelease" \
+              --body "The nightly E2E canary failed — a generated app may break on an upcoming Harper release. Run: ${run_url}"
+          else
+            echo "An open e2e-canary issue already exists; commenting instead of duplicating."
+            number=$(gh issue list --label e2e-canary --state open --json number --jq '.[0].number')
+            gh issue comment "$number" --body "Canary failed again: ${run_url}"
+          fi
