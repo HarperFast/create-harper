@@ -1,0 +1,27 @@
+{
+	"name": "your-package-name-here",
+	"version": "0.0.0",
+	"private": true,
+	"repository": "github:HarperFast/create-harper",
+	"scripts": {
+		"agent:run": "npx -y @harperfast/agent@latest",
+		"agent:skills:update": "npx -y skills@latest add harperfast/skills --all --yes",
+		"start": "harper run .",
+		"dev": "harper dev .",
+		"build": "next build",
+		"lint": "eslint .",
+		"format": "prettier --write .",
+		"deploy": "harper deploy_component . restart=true replicated=true"
+	},
+	"dependencies": {
+		"@harperfast/nextjs": "^2.2.1",
+		"next": "^16.2.11",
+		"react": "^19.2.8",
+		"react-dom": "^19.2.8"
+	},
+	"devDependencies": {
+		"eslint": "^9.27.0",
+		"eslint-config-next": "^16.2.11",
+		"prettier": "^3.8.1"
+	}
+}

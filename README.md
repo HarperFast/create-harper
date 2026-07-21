@@ -69,6 +69,8 @@ Currently supported template presets include:
 - `vanilla-ts`
 - `react`
 - `react-ts`
+- `nextjs`
+- `nextjs-ts`
 
 You can use `.` for the project name to scaffold in the current directory.
 
