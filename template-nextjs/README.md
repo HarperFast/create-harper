@@ -40,12 +40,10 @@ These schemas are the heart of a Harper app, specifying which tables you want an
 
 ### Access Harper From Server Code
 
-Any server-side module that uses the Harper globals must first import the `harper` package:
+Harper injects a `tables` global into server-side code, so server actions and server components read and write your database directly — no import needed:
 
 ```js
 'use server';
-
-import 'harper';
 
 export async function listDogs() {
 	const dogs = [];
@@ -55,6 +53,8 @@ export async function listDogs() {
 	return dogs;
 }
 ```
+
+> **Don't** add a top-level `import 'harper'` in these modules. It runs during the Next.js production build (when Next collects page data) and conflicts with the running database — use the injected `tables` global instead.
 
 Following Next.js best practices, put this data access in **server actions** so that both server _and_ client components can share the same functions.
 
