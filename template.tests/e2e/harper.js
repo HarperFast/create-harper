@@ -40,6 +40,8 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
  * @param {number} [options.opsPort]
  * @param {{username: string, password: string}} [options.credentials]
  * @param {(chunk: string) => void} [options.onLog] - Receives Harper's stdout/stderr as it arrives.
+ * @param {() => void} [options.onStop] - Extra caller cleanup run by stop() (and on interrupt),
+ *   after Harper is killed and before the scratch dir is removed.
  * @returns {Promise<{
  *   baseUrl: string, opsUrl: string, credentials: object, authorization: string,
  *   stop: () => void, waitUntilReady: (probePath: string, timeoutMs?: number) => Promise<void>,
@@ -53,6 +55,7 @@ export async function bootHarper({
 	opsPort = Number(process.env.SMOKE_OPS_PORT ?? 19925),
 	credentials = DEFAULT_CREDENTIALS,
 	onLog,
+	onStop,
 } = {}) {
 	if (!appDir || !fs.existsSync(path.join(appDir, 'config.yaml'))) {
 		throw new Error(`bootHarper: appDir must contain a config.yaml (got ${appDir})`);
@@ -109,15 +112,33 @@ export async function bootHarper({
 	});
 
 	function stop() {
+		// Detach the interrupt handlers first so stop() is idempotent and repeated boots don't
+		// accumulate process listeners.
+		process.removeListener('SIGINT', onSignal);
+		process.removeListener('SIGTERM', onSignal);
 		try {
+			// Harper runs in its own process group (detached), so it outlives this process unless
+			// killed explicitly — negative pid targets the whole group.
 			if (harper.pid) {
 				process.kill(-harper.pid, 'SIGTERM');
 			}
 		} catch {}
 		try {
+			onStop?.();
+		} catch {}
+		try {
 			fs.rmSync(scratchDir, { recursive: true, force: true });
 		} catch {}
 	}
+
+	// An interrupted parent (Ctrl+C, CI cancellation) would otherwise leave the detached Harper
+	// orphaned and holding its ports. Kill it, then exit with the conventional signal code.
+	function onSignal(signal) {
+		stop();
+		process.exit(signal === 'SIGINT' ? 130 : 143);
+	}
+	process.on('SIGINT', onSignal);
+	process.on('SIGTERM', onSignal);
 
 	async function waitForHttp(timeoutMs = 180_000) {
 		const deadline = Date.now() + timeoutMs;

@@ -18,10 +18,10 @@ npm run test:e2e -- --template react-ts
 npm run test:e2e -- --template react-ts --harper next
 npm run test:e2e -- --template vue-ts   --harper 5.2.0-beta.1
 
-# Against an UNPUBLISHED Harper, built from a git commit / branch / tag:
-npm run test:e2e -- --template react-ts --harper-ref 1e1edc6
+# Against an UNPUBLISHED Harper, built from a git branch / tag / full commit sha:
 npm run test:e2e -- --template react-ts --harper-ref my-feature-branch
-npm run test:e2e -- --template react-ts --harper-ref abc123 --harper-repo https://github.com/me/harper.git
+npm run test:e2e -- --template react-ts --harper-ref 1e1edc666ad373a0fbfec4df4d3f0e130be13529
+npm run test:e2e -- --template react-ts --harper-ref my-branch --harper-repo https://github.com/me/harper.git
 
 # Reuse a Harper you already have installed/built (skips resolution entirely):
 HARPER_BIN=/path/to/node_modules/.bin/harper npm run test:e2e -- --template vanilla-ts
@@ -36,7 +36,11 @@ How Harper is resolved, in precedence order:
   source build's `dist/bin/harper.js`) is launched via `node`.
 - `--harper-ref <sha|branch|tag>` — clone `harperfast/harper` (public; override with
   `--harper-repo`), `npm install` + `npm run build`, and run its `dist/bin/harper.js`. This tests
-  an unpublished Harper straight from a commit. Heaviest path (full install + `tsc` build).
+  an unpublished Harper straight from a commit. Heaviest path (full install + `tsc` build). A commit
+  ref must be a **full 40-char sha** (git can't fetch a short sha directly); branches and tags work
+  as-is. The `build` script is `tsc` and Harper's `main` isn't always type-green, so — like Harper's
+  own `build-tools/build.sh` (`npm run build || true`) — a non-zero build exit is tolerated as long
+  as `dist/bin/harper.js` was emitted.
 - `--harper <spec>` (default `latest`) — `npm install harper@<spec>` into an isolated prefix. Any
   npm spec: `latest`, `next`, `5.2.0-beta.1`, a tarball, ...
 

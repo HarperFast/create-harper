@@ -11,7 +11,9 @@
  *        - HARPER_BIN if set                 — reuse an existing install/build.
  *        - --harper-ref <sha|branch|tag>     — clone harperfast/harper, npm install + build from
  *                                              source, and use dist/bin/harper.js. This runs an
- *                                              UNPUBLISHED Harper straight from a commit.
+ *                                              UNPUBLISHED Harper straight from a commit. A commit
+ *                                              must be a FULL 40-char sha (git can't fetch a short
+ *                                              sha directly); branches and tags work as-is.
  *        - --harper <spec> (default latest)  — npm install harper@<spec> into an isolated prefix
  *                                              (any npm spec: latest, next, 5.2.0-beta.1, ...).
  *   5. Build the app if it has a build script.
@@ -19,8 +21,8 @@
  *
  * Usage:
  *   node template.tests/e2e/run.js --template react-ts [--harper next] [--keep]
- *   node template.tests/e2e/run.js --template react-ts --harper-ref 1e1edc6   # build from a commit
- *   HARPER_BIN=/path/to/harper node template.tests/e2e/run.js --template vue   # reuse an install
+ *   node template.tests/e2e/run.js --template react-ts --harper-ref my-branch   # build from source
+ *   HARPER_BIN=/path/to/harper node template.tests/e2e/run.js --template vue     # reuse an install
  */
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -51,6 +53,31 @@ const appDir = path.join(workDir, `e2e-${options.template}`);
 let harperPrefix;
 let harperSrc;
 let failed = false;
+
+/**
+ * Remove this run's temp dirs. --keep retains only the generated app under test (in workDir); the
+ * Harper install/build dirs are always removed — they're hundreds of MB and never the thing you
+ * want to inspect.
+ */
+function cleanUpTempDirs() {
+	if (options.keep) {
+		console.log(`\n--keep: left the generated app at ${appDir}`);
+	} else {
+		rmrf(workDir);
+	}
+	rmrf(harperPrefix);
+	rmrf(harperSrc);
+}
+
+// finally handles normal and error exits; a bare interrupt would skip it, so clean up on signals
+// too (Harper itself is killed by bootHarper inside the Playwright child).
+for (const [signal, code] of [['SIGINT', 130], ['SIGTERM', 143]]) {
+	process.on(signal, () => {
+		cleanUpTempDirs();
+		process.exit(code);
+	});
+}
+
 try {
 	// 1. Generate with the real CLI.
 	sh(
@@ -80,6 +107,13 @@ try {
 	if (harperBin) {
 		console.log(`\nUsing HARPER_BIN=${harperBin}`);
 	} else if (options.harperRef) {
+		// git can't fetch a short sha directly from a remote, so fail early with a clear hint
+		// rather than a cryptic fetch error. Branch/tag names still work as refs.
+		if (/^[0-9a-f]{7,39}$/i.test(options.harperRef)) {
+			throw new Error(
+				`--harper-ref "${options.harperRef}" looks like a short commit sha; use a full 40-char sha, or a branch/tag name.`,
+			);
+		}
 		harperSrc = fs.mkdtempSync(path.join(os.tmpdir(), 'cha-harper-src-'));
 		console.log(`\nBuilding Harper from ${options.harperRepo} @ ${options.harperRef}`);
 		sh('git', ['init', '-q'], harperSrc);
@@ -133,13 +167,7 @@ try {
 	failed = true;
 	console.error(`\nE2E failed for ${options.template}: ${error.message}`);
 } finally {
-	if (options.keep) {
-		console.log(`\n--keep: left the generated app at ${appDir}`);
-	} else {
-		rmrf(workDir);
-		rmrf(harperPrefix);
-		rmrf(harperSrc);
-	}
+	cleanUpTempDirs();
 }
 
 process.exit(failed ? 1 : 0);
