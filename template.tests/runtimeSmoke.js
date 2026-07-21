@@ -47,21 +47,16 @@ fs.writeFileSync(
 `,
 );
 
-const harper = await bootHarper({ appDir, onLog: (chunk) => process.stdout.write(chunk) });
-
-function cleanup() {
-	harper.stop();
-	try {
-		fs.rmSync(resourcePath, { force: true });
-	} catch {}
-}
-process.on('SIGINT', () => {
-	cleanup();
-	process.exit(130);
-});
-process.on('SIGTERM', () => {
-	cleanup();
-	process.exit(143);
+// bootHarper installs SIGINT/SIGTERM handlers that run onStop and kill the detached instance, so
+// removing the injected resource here covers the interrupt path too — no separate handlers needed.
+const harper = await bootHarper({
+	appDir,
+	onLog: (chunk) => process.stdout.write(chunk),
+	onStop: () => {
+		try {
+			fs.rmSync(resourcePath, { force: true });
+		} catch {}
+	},
 });
 
 const failures = [];
@@ -123,7 +118,8 @@ try {
 } catch (error) {
 	failures.push(String(error?.message ?? error));
 } finally {
-	cleanup();
+	// stop() kills Harper, runs onStop (removes the injected resource), and clears its scratch dir.
+	harper.stop();
 }
 
 if (failures.length > 0) {
