@@ -1,0 +1,5 @@
+# Pre-approve the build scripts for Next.js's native dependencies so `pnpm install` doesn't halt
+# on them (pnpm 10.12+/11 gate dependency build scripts by default). npm and yarn ignore this file.
+allowBuilds:
+  sharp: true
+  unrs-resolver: true

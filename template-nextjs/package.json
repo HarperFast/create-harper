@@ -24,8 +24,5 @@
 		"eslint-config-next": "^16.2.11",
 		"prettier": "^3.8.1",
 		"typescript": "^5.9.3"
-	},
-	"pnpm": {
-		"onlyBuiltDependencies": ["sharp", "unrs-resolver"]
 	}
 }
