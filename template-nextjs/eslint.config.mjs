@@ -3,10 +3,11 @@ import next from 'eslint-config-next';
 const eslintConfig = [
 	...next,
 	{
-		// `tables` is a global injected by the Harper runtime for server-side code.
+		// `tables` and `transaction` are globals injected by the Harper runtime for server-side code.
 		languageOptions: {
 			globals: {
 				tables: 'readonly',
+				transaction: 'readonly',
 			},
 		},
 	},

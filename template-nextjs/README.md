@@ -32,7 +32,7 @@ Your tables live in [`schema.graphql`](./schema.graphql). The starter defines a 
 
 ### Access Harper From Server Code
 
-Harper injects a `tables` global into server-side code, so server actions and server components read and write your database directly — no import needed:
+Harper injects `tables` and `transaction` globals into server-side code, so server actions and server components read and write your database directly — no import needed. Use an atomic `addTo` inside a `transaction` for writes that stay correct when requests overlap across worker threads and replicated nodes (a read-then-write would lose concurrent increments):
 
 ```js
 'use server';
@@ -43,15 +43,14 @@ export async function getCount() {
 }
 
 export async function increment() {
-	const current = await tables.Count.get('count');
-	await tables.Count.put('count', {
-		id: 'count',
-		value: (current?.value ?? 0) + 1,
+	await transaction(async () => {
+		const record = await tables.Count.update('count');
+		record.addTo('value', 1);
 	});
 }
 ```
 
-> **Don't** add a top-level `import 'harper'` in these modules. It runs during the Next.js production build (when Next collects page data) and conflicts with the running database — use the injected `tables` global instead.
+> **Don't** add a top-level `import 'harper'` in these modules. It runs during the Next.js production build (when Next collects page data) and conflicts with the running database — use the injected globals instead.
 
 Put data access in **server actions** (see [`app/actions.js`](./app/actions.js)) so that both server _and_ client components can share the same functions. Any action a client can reach is a public endpoint, so add your own authorization checks before shipping mutations that matter.
 
