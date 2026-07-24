@@ -3,18 +3,17 @@
  * Runtime smoke test for a generated Next.js-on-Harper template application.
  *
  * The `@harperfast/nextjs` plugin owns HTTP routing, so these apps don't expose the REST resource
- * surface that runtimeSmoke.js checks. The templates deploy prebuilt (`prebuilt: true` + a `.next`
- * produced by `next build`, which the app's own `build` script runs before this test), so `harper
- * run` serves that build rather than compiling on startup. This variant boots the app under a real
- * Harper instance (isolated root, throwaway admin user) and verifies the two things every Next.js
- * template must do:
+ * surface that runtimeSmoke.js checks. `harper run` builds the Next.js app on startup (the plugin
+ * serializes that build across worker threads — @harperfast/nextjs#52). This variant boots the app
+ * under a real Harper instance (isolated root, throwaway admin user) and verifies the two things
+ * every Next.js template must do:
  *
- *   1. The prebuilt app is served — `GET /` returns HTML. (If `.next` is missing, or a regression
- *      reintroduces an on-startup build that races across worker threads and fails, the plugin
- *      skips serving and every route 404s; this catches that. Harper runs multi-threaded here on
- *      purpose so that regression would surface.)
- *   2. Server-side Harper access works — the home page reads the `Count` table via a server
- *      action and renders the persisted count, so the HTML contains "count is".
+ *   1. The app builds and serves — `GET /` returns HTML rendering the Harper-backed counter (a
+ *      server component reading the Count table). Harper runs multi-threaded here on purpose: a
+ *      build that races/fails leaves the plugin unable to serve, and this catches that.
+ *   2. The write path works — invoking the increment server action (transaction + addTo) advances
+ *      the persisted count, verified by a fresh reload. GET-only would still pass if the write half
+ *      were broken.
  *
  * Usage: node template.tests/nextSmoke.js <app-dir>
  *
@@ -113,25 +112,59 @@ async function waitForServer(timeoutMs = 300_000) {
 
 const failures = [];
 
+// Pull the counter value out of the rendered HTML ("count is <n>"; React can split that text node).
+function parseCount(html) {
+	const m = html.replace(/<[^>]+>/g, '').match(/count is\s*(\d+)/i);
+	return m ? Number(m[1]) : null;
+}
+
 try {
 	await waitForServer();
 
+	// 1. The app builds + serves, and the home page renders the Harper-backed counter (a server
+	//    component reading the Count table).
 	const response = await fetch(baseUrl + '/', { signal: AbortSignal.timeout(10_000) });
-	const body = await response.text();
+	const html = await response.text();
 	const contentType = response.headers.get('content-type') ?? '';
+	const countBefore = parseCount(html);
+	// Next renders `<form action={serverAction}>` with a hidden `$ACTION_ID_<hash>` field; posting it
+	// as multipart/form-data is the no-JS progressive-enhancement path that invokes the server action.
+	const actionField = html.match(/name="(\$ACTION_ID_[a-f0-9]+)"/)?.[1];
+
 	if (!response.ok) {
 		failures.push(`expected 200 from GET /, got ${response.status} (build likely failed → not served)`);
 	} else if (!contentType.includes('text/html')) {
-		failures.push(`expected an text/html response from GET /, got ${contentType}`);
-	} else if (!body.toLowerCase().includes('<html')) {
+		failures.push(`expected a text/html response from GET /, got ${contentType}`);
+	} else if (!html.toLowerCase().includes('<html')) {
 		failures.push('GET / response does not look like an HTML document');
-	} else if (!body.includes('count is')) {
+	} else if (countBefore === null) {
 		// The count is read from the Count table in a server action; its absence means the
 		// server-side Harper read failed.
-		failures.push('GET / HTML is missing the counter ("count is") — server-side table read may have failed');
-	}
-	if (failures.length === 0) {
-		console.log('✓ Next.js app builds, serves, and renders the Harper-backed counter');
+		failures.push('GET / HTML is missing the counter ("count is <n>") — server-side table read may have failed');
+	} else if (!actionField) {
+		failures.push("GET / HTML is missing the increment form's server-action field");
+	} else {
+		console.log(`✓ app builds, serves, and renders the counter (count is ${countBefore})`);
+
+		// 2. Exercise the write half end to end: invoke the increment server action, then confirm a
+		//    fresh reload reflects the persisted, incremented value (transaction + addTo + revalidate).
+		const form = new FormData();
+		form.append(actionField, '');
+		const post = await fetch(baseUrl + '/', { method: 'POST', body: form, signal: AbortSignal.timeout(15_000) });
+		if (!post.ok) {
+			failures.push(`increment server action POST failed: ${post.status}`);
+		} else {
+			const reload = await fetch(baseUrl + '/', { signal: AbortSignal.timeout(10_000) });
+			const countAfter = parseCount(await reload.text());
+			if (countAfter === countBefore + 1) {
+				console.log(`✓ increment server action advances the persisted count (${countBefore} → ${countAfter})`);
+			} else {
+				failures.push(
+					`increment did not advance the count on reload: ${countBefore} → ${countAfter} `
+						+ '(server action, transaction/addTo, or revalidation may be broken)',
+				);
+			}
+		}
 	}
 } catch (error) {
 	failures.push(String(error?.message ?? error));
