@@ -6,15 +6,15 @@
 	"scripts": {
 		"agent:run": "npx -y @harperfast/agent@latest",
 		"agent:skills:update": "npx -y skills@latest add harperfast/skills --all --yes",
-		"start": "next build && harper run .",
-		"dev": "next build && harper dev .",
+		"start": "harper run .",
+		"dev": "harper dev .",
 		"build": "next build",
 		"lint": "eslint .",
 		"format": "prettier --write .",
-		"deploy": "next build && harper deploy_component . restart=true replicated=true"
+		"deploy": "harper deploy_component . restart=true replicated=true"
 	},
 	"dependencies": {
-		"@harperfast/nextjs": "^2.2.1",
+		"@harperfast/nextjs": "^2.2.3",
 		"next": "^16.2.11",
 		"react": "^19.2.8",
 		"react-dom": "^19.2.8"
