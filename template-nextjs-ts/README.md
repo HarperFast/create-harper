@@ -70,7 +70,7 @@ Then deploy your app:
 npm run deploy
 ```
 
-`npm run deploy` uploads the component and Harper builds the Next.js app on the server when it starts — no local build required.
+`npm run deploy` runs `next build` locally and ships the prebuilt `.next` output, then Harper serves it — no build runs on the cluster. (Building on the cluster currently fails; see the note in [`config.yaml`](./config.yaml).)
 
 ## Keep Going!
 
