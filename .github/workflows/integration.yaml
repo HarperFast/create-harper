@@ -161,9 +161,9 @@ jobs:
           # Boot the generated app under a real Harper instance and verify its HTTP surface. Once
           # per template — the package manager doesn't matter here. The Next.js templates route
           # through the @harperfast/nextjs plugin (no REST resources), so they use a dedicated
-          # smoke that checks the on-startup build serves the Harper-backed counter; every other
-          # template uses runtimeSmoke, which also guards against the static handler swallowing
-          # REST GETs.
+          # smoke that serves the prebuilt build (produced by the `build` step above) and checks the
+          # Harper-backed counter reads and increments; every other template uses runtimeSmoke,
+          # which also guards against the static handler swallowing REST GETs.
           if [ "${{ matrix.pkg-manager }}" = "npm" ]; then
             echo "Installing Harper..."
             npm install --global harper
