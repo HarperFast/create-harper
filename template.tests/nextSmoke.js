@@ -3,24 +3,26 @@
  * Runtime smoke test for a generated Next.js-on-Harper template application.
  *
  * The `@harperfast/nextjs` plugin owns HTTP routing, so these apps don't expose the REST resource
- * surface that runtimeSmoke.js checks. `harper run` builds the Next.js app on startup (the plugin
- * serializes that build across worker threads — @harperfast/nextjs#52). This variant boots the app
- * under a real Harper instance (isolated root, throwaway admin user) and verifies the two things
- * every Next.js template must do:
+ * surface that runtimeSmoke.js checks. The templates ship `prebuilt: true`, so `harper run` serves
+ * a prebuilt `.next` rather than building on startup (an on-cluster build currently fails —
+ * @harperfast/nextjs#57 and #58). This smoke mirrors the real deploy flow: it builds the app (if it
+ * isn't already built), then boots it under a real Harper instance (isolated root, throwaway admin
+ * user, multi-threaded) and verifies the two things every Next.js template must do:
  *
- *   1. The app builds and serves — `GET /` returns HTML rendering the Harper-backed counter (a
- *      server component reading the Count table). Harper runs multi-threaded here on purpose: a
- *      build that races/fails leaves the plugin unable to serve, and this catches that.
+ *   1. The app serves — `GET /` returns HTML rendering the Harper-backed counter (a server
+ *      component reading the Count table). A missing or broken prebuilt leaves the plugin unable to
+ *      serve, and this catches that.
  *   2. The write path works — invoking the increment server action (transaction + addTo) advances
  *      the persisted count, verified by a fresh reload. GET-only would still pass if the write half
  *      were broken.
  *
  * Usage: node template.tests/nextSmoke.js <app-dir>
  *
- * The app must already be installed. Requires the `harper` CLI on PATH (or set HARPER_BIN).
- * POSIX only. Ports override via SMOKE_HTTP_PORT / SMOKE_OPS_PORT.
+ * The app must already be installed (this script runs `next build` if `.next` is absent). Requires
+ * the `harper` CLI on PATH (or set HARPER_BIN). POSIX only. Ports override via SMOKE_HTTP_PORT /
+ * SMOKE_OPS_PORT.
  */
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -28,6 +30,19 @@ const appDir = process.argv[2] && path.resolve(process.argv[2]);
 if (!appDir || !fs.existsSync(path.join(appDir, 'config.yaml'))) {
 	console.error('Usage: node template.tests/nextSmoke.js <app-dir> (must contain a config.yaml)');
 	process.exit(2);
+}
+
+// The templates ship `prebuilt: true`: `harper run` serves an existing `.next` and refuses to build
+// on startup, so make sure the app is built first. Skip when it already is (CI runs the template's
+// `build` script before this smoke); otherwise build here so the script also works standalone.
+if (!fs.existsSync(path.join(appDir, '.next', 'BUILD_ID'))) {
+	console.log('No prebuilt .next found — running `next build`...');
+	const nextBin = path.join(appDir, 'node_modules', '.bin', 'next');
+	const build = spawnSync(nextBin, ['build'], { cwd: appDir, stdio: 'inherit', env: process.env });
+	if (build.status !== 0) {
+		console.error('`next build` failed; cannot run the prebuilt smoke.');
+		process.exit(1);
+	}
 }
 
 const httpPort = Number(process.env.SMOKE_HTTP_PORT ?? 19926);
