@@ -14,7 +14,16 @@ jobs:
       fail-fast: false
       matrix:
         pkg-manager: [npm, yarn, pnpm]
-        template: [vanilla, vanilla-ts, react, react-ts, vue, vue-ts]
+        template: [
+          vanilla,
+          vanilla-ts,
+          react,
+          react-ts,
+          vue,
+          vue-ts,
+          nextjs,
+          nextjs-ts,
+        ]
     steps:
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -136,8 +145,12 @@ jobs:
           echo "Running format check..."
           ${{ matrix.pkg-manager }} run format
 
-          echo "Running tests..."
-          ${{ matrix.pkg-manager }} run test
+          # Run tests if the template defines a test script (the Next.js templates don't ship
+          # unit tests — their runtime smoke below is their coverage).
+          if grep -q '"test":' package.json; then
+            echo "Running tests..."
+            ${{ matrix.pkg-manager }} run test
+          fi
 
           # Check for build script and run it if exists
           if grep -q '"build":' package.json; then
@@ -145,15 +158,25 @@ jobs:
             ${{ matrix.pkg-manager }} run build
           fi
 
-          # Boot the generated app under a real Harper instance and verify both the REST
-          # resources and the frontend are reachable (guards against the static handler
-          # swallowing REST GETs). Once per template — the package manager doesn't matter here.
+          # Boot the generated app under a real Harper instance and verify its HTTP surface. Once
+          # per template — the package manager doesn't matter here. The Next.js templates route
+          # through the @harperfast/nextjs plugin (no REST resources), so they use a dedicated
+          # smoke that serves the prebuilt build (produced by the `build` step above) and checks the
+          # Harper-backed counter reads and increments; every other template uses runtimeSmoke,
+          # which also guards against the static handler swallowing REST GETs.
           if [ "${{ matrix.pkg-manager }}" = "npm" ]; then
             echo "Installing Harper..."
             npm install --global harper
 
             echo "Running runtime smoke test..."
-            node "$REPO_PATH/template.tests/runtimeSmoke.js" .
+            case "${{ matrix.template }}" in
+              nextjs | nextjs-ts)
+                node "$REPO_PATH/template.tests/nextSmoke.js" .
+                ;;
+              *)
+                node "$REPO_PATH/template.tests/runtimeSmoke.js" .
+                ;;
+            esac
           fi
 
           echo "Integration test passed for ${{ matrix.pkg-manager }} with ${{ matrix.template }}!"

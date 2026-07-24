@@ -1,0 +1,4 @@
+type Count @table @export {
+	id: ID @primaryKey
+	value: Int
+}

@@ -1,4 +1,4 @@
-export type Framework = 'vanilla' | 'react' | 'vue';
+export type Framework = 'vanilla' | 'react' | 'vue' | 'nextjs';
 
 export type TemplateName =
 	| 'vanilla-ts'
@@ -10,7 +10,9 @@ export type TemplateName =
 	| 'vue-ts'
 	| 'vue'
 	| 'vue-ts-ssr'
-	| 'vue-ssr';
+	| 'vue-ssr'
+	| 'nextjs-ts'
+	| 'nextjs';
 
 export interface TemplateInfo {
 	/** The canonical template name (e.g. 'vanilla', 'react-ts'). Used to scaffold. */
@@ -27,6 +29,11 @@ export interface TemplateInfo {
 	typescript: boolean;
 	/** Whether the template is server-side rendered. */
 	ssr: boolean;
+	/**
+	 * Whether a Studio template package is built and published for this template. Defaults to true;
+	 * set to false for templates that don't (yet) run in the Studio's deploy-only model.
+	 */
+	studio?: boolean;
 	/** The published Studio template package for this template. */
 	npmPackage: string;
 	/** A link to the template's source on GitHub. */
@@ -51,4 +58,13 @@ export declare const templateNames: readonly [
 	'vue',
 	'vue-ts-ssr',
 	'vue-ssr',
+	'nextjs-ts',
+	'nextjs',
 ];
+
+/**
+ * The subset of {@link templateNames} for which a Studio template package is built and published
+ * (every template whose catalog entry does not set `studio: false`). Consumed by the Studio
+ * build/publish scripts.
+ */
+export declare const studioTemplateNames: readonly TemplateName[];
