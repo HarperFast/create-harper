@@ -17,7 +17,7 @@ jobs:
         template: [vanilla, vanilla-ts, react, react-ts, vue, vue-ts]
     steps:
       - name: Checkout
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Setup pnpm
         if: matrix.pkg-manager == 'pnpm'
@@ -29,7 +29,7 @@ jobs:
           # regressed that self-installer (lockfile integrity handling), breaking CI.
           # Pinning keeps CI reproducible and avoids auto-pulling an unvetted build.
           # Bump deliberately once a known-good newer version is verified.
-          version: 11.13.1
+          version: 11.17.0
 
       - name: Setup Node.js
         uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
