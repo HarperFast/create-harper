@@ -5,7 +5,8 @@
  *   - framework: which frontend overlay to apply (react / vue / vanilla).
  *   - ssr:       server-rendered templates use an entry-client/entry-server split rather than a
  *                single `main` entry, so the browser-component overlay doesn't apply (yet). They
- *                still run the full HTTP suite (CRUD, custom resource, frontend-served).
+ *                still run the API suite (CRUD + custom resource); the frontend-served and browser
+ *                specs are gated off for SSR (see frontend.spec.js / browser.spec.js, `E2E_SSR`).
  *   - browser:   whether to apply the frontend component overlay and run the browser spec.
  */
 
