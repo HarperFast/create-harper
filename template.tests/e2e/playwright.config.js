@@ -20,7 +20,9 @@ const httpPort = Number(process.env.SMOKE_HTTP_PORT ?? 19926);
 export default defineConfig({
 	testDir: './specs',
 	globalSetup: './globalSetup.js',
-	outputDir: path.join(os.tmpdir(), 'cha-e2e-artifacts'),
+	// Traces/artifacts land here (retained on failure). CI sets E2E_ARTIFACTS_DIR to a known path
+	// so it can upload them before the runner is discarded; run.js leaves this dir alone on cleanup.
+	outputDir: process.env.E2E_ARTIFACTS_DIR ?? path.join(os.tmpdir(), 'cha-e2e-artifacts'),
 	timeout: 30_000,
 	fullyParallel: false,
 	workers: 1,
