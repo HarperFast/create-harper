@@ -150,8 +150,16 @@ git push --tags
 
 Add these repository secrets first, under **Settings → Secrets and variables → Actions**:
 
-- `CLI_TARGET` — your cluster's operations URL (e.g. `https://your-cluster.harperdb.io:9925`)
-- `HARPER_CLI_USERNAME` and `HARPER_CLI_PASSWORD` — a cluster user allowed to deploy
+- `HARPER_CLI_TARGET` — your cluster's operations URL (e.g. `https://your-cluster.harperdb.io:9925`)
+- `HARPER_CLI_REFRESH_TOKEN` — a long-lived token CI authenticates with, so no password is stored
+
+Set both in one command — this pipes the credentials straight from your cluster into GitHub, so the token never appears on screen or in your shell history:
+
+```sh
+harper login --for-ci | gh secret set --env-file -
+```
+
+(No [`gh` CLI](https://cli.github.com)? `harper login --for-ci | pbcopy` copies the two lines for you to paste in by hand.)
 
 The clone credential already lives in the cluster from `npm run deploy:setup`, so CI never handles a token itself.
 

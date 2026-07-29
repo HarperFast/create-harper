@@ -25,6 +25,12 @@ import { copyDir } from '../lib/fs/copyDir.js';
 	// `harper` CLI. It still gets every other shared file.
 	const excludeGithubForEarlyHints = (src) => !src.split(path.sep).includes('_github');
 
+	// The Next.js templates are absent from the list above on purpose. They deploy by *payload*
+	// (`next build && harper deploy_component .`) because `.next` is gitignored — so a git
+	// reference carries no build output — and building on the cluster currently fails
+	// (HarperFast/nextjs#57, #58). They keep their own payload deploy workflow; once those issues
+	// land they can join this fan-out and switch to deploy-by-reference like the rest.
+
 	for (const key in copiesToMake) {
 		const fromShared = path.resolve(import.meta.dirname, key);
 		for (const targetTemplate of copiesToMake[key]) {
