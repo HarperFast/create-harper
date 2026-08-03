@@ -38,7 +38,7 @@ jobs:
           # regressed that self-installer (lockfile integrity handling), breaking CI.
           # Pinning keeps CI reproducible and avoids auto-pulling an unvetted build.
           # Bump deliberately once a known-good newer version is verified.
-          version: 11.17.0
+          version: 11.19.0
 
       - name: Setup Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
