@@ -8,6 +8,11 @@ const root = path.resolve(import.meta.dirname, '..');
 const cliPath = path.resolve(root, 'index.js');
 const tempDir = path.resolve(root, '.temp-integration-tests');
 
+// Templates that still deploy by payload rather than by reference. Kept as an explicit list so
+// adding a template can't silently opt out of deploy-by-reference — a new one fails the by-ref
+// assertions below until it's either wired up or added here with a reason.
+const PAYLOAD_DEPLOY_TEMPLATES = new Set(['nextjs', 'nextjs-ts']);
+
 describe('Integration tests', () => {
 	beforeAll(() => {
 		if (fs.existsSync(tempDir)) {
@@ -69,14 +74,34 @@ describe('Integration tests', () => {
 			const templateDir = path.resolve(root, `template-${template}`);
 			if (fs.existsSync(path.join(templateDir, '_env'))) {
 				expect(fs.existsSync(path.join(targetDir, '.env'))).toBe(true);
+				// Credentials come from `harper login` (local) or GitHub Actions secrets (CI); the
+				// scaffolded .env only selects the target cluster.
 				const envContent = fs.readFileSync(path.join(targetDir, '.env'), 'utf-8');
-				expect(envContent).toContain('CLI_TARGET_USERNAME');
-				expect(envContent).toContain('CLI_TARGET_PASSWORD');
 				expect(envContent).toContain('CLI_TARGET');
+				expect(envContent).not.toContain('CLI_TARGET_USERNAME');
+				expect(envContent).not.toContain('CLI_TARGET_PASSWORD');
 			}
 
 			if (fs.existsSync(path.join(templateDir, '_env.example'))) {
 				expect(fs.existsSync(path.join(targetDir, '.env.example'))).toBe(true);
+			}
+
+			// The deploy workflow must live under `.github/workflows/` (plural — GitHub only runs
+			// workflows there; the singular `workflow/` these templates used to ship never triggered).
+			expect(fs.existsSync(path.join(targetDir, '.github', 'workflows', 'deploy.yaml'))).toBe(true);
+			// Deploy is driven by the native harper CLI, never a per-project script.
+			expect(fs.existsSync(path.join(targetDir, 'scripts', 'deploy.mjs'))).toBe(false);
+
+			if (PAYLOAD_DEPLOY_TEMPLATES.has(template)) {
+				// Next.js deploys by payload: `.next` is gitignored, so a git reference carries no
+				// build output, and building on the cluster fails (HarperFast/nextjs#57, #58).
+				expect(pkgJson.scripts.deploy).toBe('next build && harper deploy_component . restart=true replicated=true');
+				expect(pkgJson.scripts['deploy:setup']).toBeUndefined();
+			} else {
+				expect(pkgJson.scripts.deploy).toBe(
+					'harper deploy by_ref=true credential=github.com restart=true replicated=true',
+				);
+				expect(pkgJson.scripts['deploy:setup']).toBe('harper deploy setup=true');
 			}
 		});
 	}
