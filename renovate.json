@@ -42,6 +42,12 @@
 			"description": "Hold conventional-changelog-conventionalcommits on v9: @semantic-release/release-notes-generator@14 bundles the Handlebars conventional-changelog-writer@8, and preset v10's function-based templates render empty release notes under writer@8. Drop once release-notes-generator ships a writer@9 major.",
 			"matchPackageNames": ["conventional-changelog-conventionalcommits"],
 			"allowedVersions": "<10"
+		},
+		{
+			"description": "Hold eslint on v9 in the Next.js templates only: eslint-config-next (vendored Babel parser + eslint-plugin-react@7.37.5) isn't ESLint-10-ready, so `next lint`/`eslint .` crash in both the JS and TS Next.js templates. Tracked at https://github.com/vercel/next.js/issues/91702. Drop once that ships and eslint-config-next is bumped past it.",
+			"matchPackageNames": ["eslint"],
+			"matchFileNames": ["template-nextjs/package.json", "template-nextjs-ts/package.json"],
+			"allowedVersions": "<10"
 		}
 	]
 }
