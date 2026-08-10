@@ -16,7 +16,7 @@
 		"deploy": "harper deploy_component . restart=true replicated=true"
 	},
 	"dependencies": {
-		"@harperfast/schema-codegen": "^1.0.10",
+		"@harperfast/schema-codegen": "^2.0.0",
 		"@harperfast/vite": "^1.1.0",
 		"@vitejs/plugin-react": "^6.0.1",
 		"react": "^19.2.4",
