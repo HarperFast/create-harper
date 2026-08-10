@@ -16,7 +16,7 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",
-		"@harperfast/schema-codegen": "^1.0.10",
+		"@harperfast/schema-codegen": "^2.0.0",
 		"eslint": "^10.0.2",
 		"globals": "^17.4.0",
 		"prettier": "^3.8.1"
