@@ -129,7 +129,7 @@ npm run deploy:setup
 
 This fetches your cluster's public key, has you provide a GitHub token (a fine-grained PAT with **Contents: Read-only**, or your `gh` CLI session), **encrypts it locally**, and stores only the ciphertext in the cluster's secret store. The plaintext never leaves your machine; the cluster decrypts it in memory only while cloning. Because the token is durable, rollbacks keep working for as long as it's valid.
 
-> Public repo? Skip this step and drop `credential=github.com` from the `deploy` script — no credential is needed.
+> Public repo? Skip this step and drop `credential=true` from the `deploy` script — no credential is needed.
 
 ### Deploy
 

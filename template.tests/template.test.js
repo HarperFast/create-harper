@@ -99,7 +99,7 @@ describe('Integration tests', () => {
 				expect(pkgJson.scripts['deploy:setup']).toBeUndefined();
 			} else {
 				expect(pkgJson.scripts.deploy).toBe(
-					'harper deploy by_ref=true credential=github.com restart=true replicated=true',
+					'harper deploy by_ref=true credential=true restart=true replicated=true',
 				);
 				expect(pkgJson.scripts['deploy:setup']).toBe('harper deploy setup=true');
 			}

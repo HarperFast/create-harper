@@ -16,7 +16,7 @@
 #
 #   harper login --for-ci | gh secret set --env-file -
 #
-# Public repo? Drop `credential=github.com` from the `deploy` script — no cluster-side auth needed.
+# Public repo? Drop `credential=true` from the `deploy` script — no cluster-side auth needed.
 # See the "Deployment" section of the README for details.
 name: Deploy to Harper Fabric
 on:
