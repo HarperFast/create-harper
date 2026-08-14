@@ -1,5 +1,6 @@
 # Deploys this app to your Harper cluster by *payload* via `harper deploy_component .`
-# (`npm run deploy`), which runs `next build` first and uploads the prebuilt `.next` output.
+# (`your-package-manager-run-here deploy`), which runs `next build` first and uploads the prebuilt
+# `.next` output.
 #
 # The other create-harper templates deploy by *reference* (`harper deploy by_ref=true`), where the
 # cluster clones your repo and builds on the node. Next.js can't use that yet: `.next` is gitignored
@@ -39,20 +40,23 @@ jobs:
         with:
           fetch-depth: 0
           fetch-tags: true
+      # your-package-manager-setup-step-here
       - name: Set up Node.js
         uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
         with:
-          cache: 'npm'
+          # your-package-manager-node-cache-here
           node-version-file: '.nvmrc'
       - name: Install dependencies
-        run: npm ci
+        run: your-package-manager-install-here
       - name: Run lint
-        run: npm run lint
+        run: your-package-manager-run-here lint
       - name: Install Harper CLI
-        # Pinned to the 5.2 line; ^5.2.0 blocks a breaking 6.x bump.
+        # Installed with npm regardless of this project's package manager: it is a global tool, and
+        # npm always comes with the Node.js set up above. Pinned to the 5.2 line; ^5.2.0 blocks a
+        # breaking 6.x bump.
         run: npm install -g harper@^5.2.0
       - name: Build & deploy
-        run: npm run deploy
+        run: your-package-manager-run-here deploy
         env:
           HARPER_CLI_TARGET: ${{ secrets.HARPER_CLI_TARGET }}
           HARPER_CLI_REFRESH_TOKEN: ${{ secrets.HARPER_CLI_REFRESH_TOKEN }}

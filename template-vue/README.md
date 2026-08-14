@@ -17,7 +17,7 @@ npm install -g harper
 Then you can start your app:
 
 ```sh
-npm run dev
+your-package-manager-run-here dev
 ```
 
 ### Define Your Schema
@@ -116,7 +116,7 @@ harper login
 So the cluster can clone your private repository, give it a read-only token — sealed on your machine, stored encrypted:
 
 ```sh
-npm run deploy:setup
+your-package-manager-run-here deploy:setup
 ```
 
 This fetches your cluster's public key, has you provide a GitHub token (a fine-grained PAT with **Contents: Read-only**, or your `gh` CLI session), **encrypts it locally**, and stores only the ciphertext in the cluster's secret store. The plaintext never leaves your machine; the cluster decrypts it in memory only while cloning. Because the token is durable, rollbacks keep working for as long as it's valid.
@@ -126,7 +126,7 @@ This fetches your cluster's public key, has you provide a GitHub token (a fine-g
 ### Deploy
 
 ```sh
-npm run deploy
+your-package-manager-run-here deploy
 ```
 
 This deploys the current commit over `git+https` — commit and push first, since the cluster clones from GitHub and only sees pushed commits. To roll back, check out an older commit and run it again.
@@ -153,11 +153,11 @@ harper login --for-ci | gh secret set --env-file -
 
 (No [`gh` CLI](https://cli.github.com)? `harper login --for-ci | pbcopy` copies the two lines for you to paste in by hand.)
 
-The clone credential already lives in the cluster from `npm run deploy:setup`, so CI never handles a token itself.
+The clone credential already lives in the cluster from `your-package-manager-run-here deploy:setup`, so CI never handles a token itself.
 
 ### Private npm dependencies
 
-If your app depends on private npm packages, run `npm run deploy:setup` again and choose the npm registry — the same sealed-token flow, stored as a separate credential.
+If your app depends on private npm packages, run `your-package-manager-run-here deploy:setup` again and choose the npm registry — the same sealed-token flow, stored as a separate credential.
 
 ## Keep Going!
 

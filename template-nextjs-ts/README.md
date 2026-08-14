@@ -19,7 +19,7 @@ npm install -g harper
 Start the app:
 
 ```sh
-npm run dev
+your-package-manager-run-here dev
 ```
 
 Then open [http://localhost:9926](http://localhost:9926) 🎉
@@ -67,10 +67,10 @@ harper login
 Then deploy your app:
 
 ```sh
-npm run deploy
+your-package-manager-run-here deploy
 ```
 
-`npm run deploy` runs `next build` locally and ships the prebuilt `.next` output, then Harper serves it — no build runs on the cluster. (Building on the cluster currently fails; see the note in [`config.yaml`](./config.yaml).)
+`your-package-manager-run-here deploy` runs `next build` locally and ships the prebuilt `.next` output, then Harper serves it — no build runs on the cluster. (Building on the cluster currently fails; see the note in [`config.yaml`](./config.yaml).)
 
 ### Deploy automatically from CI
 
