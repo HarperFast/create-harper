@@ -180,3 +180,68 @@ jobs:
           fi
 
           echo "Integration test passed for ${{ matrix.pkg-manager }} with ${{ matrix.template }}!"
+
+  # The matrix above exercises Yarn 1.x (Classic). Yarn 2+ (Berry) is a different animal: it isn't
+  # on the runner, and a scaffolded project pins no packageManager/.yarnrc.yml, so the generated
+  # deploy workflow provisions it with Corepack (lib/pkg/getWorkflowSubstitutions.js). This job runs
+  # that generated setup + install path for real, in the workflow's own ordering — Corepack
+  # activation with the runner's default Node *before* setup-node swaps it — to prove the activated
+  # Yarn survives the Node swap and that `yarn install --immutable` (which Classic would reject) then
+  # succeeds. deployWorkflow.test.js asserts the generator still emits exactly these commands.
+  yarn-berry-install:
+    name: Yarn Berry deploy-install path
+    runs-on: ubuntu-latest
+    env:
+      YARN_VERSION: 4.9.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Runs against the runner's default Node, before the pinned Node below — exactly as the
+      # generated workflow's "Set up Yarn" step precedes its "Set up Node.js" step.
+      - name: Activate Yarn Berry with Corepack
+        run: corepack enable && corepack prepare "yarn@$YARN_VERSION" --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run the generated Yarn Berry setup + install path
+        env:
+          CREATE_HARPER_SKIP_UPDATE: 'true'
+        run: |
+          set -euo pipefail
+          REPO="$(pwd)"
+          # Scaffold outside the repo: Berry looks upward for its project root, and create-harper's
+          # own package.json would otherwise capture the new project as a stray workspace.
+          PROJECT_DIR="$(mktemp -d)/berry-app"
+          mkdir -p "$(dirname "$PROJECT_DIR")"
+
+          ( cd "$(dirname "$PROJECT_DIR")" \
+            && npm_config_user_agent="yarn/$YARN_VERSION npm/? node/$(node -v) linux x64" \
+               node "$REPO/index.js" berry-app --template vanilla --no-interactive --overwrite --skip-install )
+
+          workflow="$PROJECT_DIR/.github/workflows/deploy.yaml"
+          echo "Asserting the generated workflow drives Yarn through Corepack, not the runner's Yarn 1..."
+          grep -q "corepack prepare yarn@$YARN_VERSION --activate" "$workflow"
+          grep -q 'yarn install --immutable' "$workflow"
+
+          cd "$PROJECT_DIR"
+          echo "yarn is $(yarn --version) at $(command -v yarn)"
+
+          # Stand in for the yarn.lock the user commits: Berry auto-enables immutable installs on a
+          # public PR runner, which forbids creating a lockfile, so disable it for this one seeding
+          # install. (A fresh scaffold ships no lockfile; the deploy workflow runs against a repo
+          # that already has one.)
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
+
+          # The reviewer's failure mode: `yarn install --immutable` under the runner's preinstalled
+          # Yarn 1 errors on the unknown flag. That `yarn is 4.9.1` line above already shows the
+          # Corepack activation survived setup-node's Node swap; this proves the generated command
+          # then succeeds under Berry.
+          yarn install --immutable

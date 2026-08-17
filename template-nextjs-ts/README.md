@@ -19,7 +19,7 @@ npm install -g harper
 Start the app:
 
 ```sh
-npm run dev
+your-package-manager-run-here dev
 ```
 
 Then open [http://localhost:9926](http://localhost:9926) 🎉
@@ -67,10 +67,34 @@ harper login
 Then deploy your app:
 
 ```sh
-npm run deploy
+your-package-manager-run-here deploy
 ```
 
-`npm run deploy` runs `next build` locally and ships the prebuilt `.next` output, then Harper serves it — no build runs on the cluster. (Building on the cluster currently fails; see the note in [`config.yaml`](./config.yaml).)
+`your-package-manager-run-here deploy` runs `next build` locally and ships the prebuilt `.next` output, then Harper serves it — no build runs on the cluster. (Building on the cluster currently fails; see the note in [`config.yaml`](./config.yaml).)
+
+### Deploy automatically from CI
+
+The included [GitHub Actions workflow](./.github/workflows/deploy.yaml) builds and deploys whenever you push a version tag:
+
+```sh
+git tag v1.0.0
+git push --tags
+```
+
+Add these repository secrets first, under **Settings → Secrets and variables → Actions**:
+
+- `HARPER_CLI_TARGET` — your cluster's operations URL (e.g. `https://your-cluster.harperdb.io:9925`)
+- `HARPER_CLI_REFRESH_TOKEN` — a long-lived token CI authenticates with, so no password is stored
+
+Set both in one command — this pipes the credentials straight from your cluster into GitHub, so the token never appears on screen or in your shell history:
+
+```sh
+harper login --for-ci | gh secret set --env-file -
+```
+
+(No [`gh` CLI](https://cli.github.com)? `harper login --for-ci | pbcopy` copies the two lines for you to paste in by hand.)
+
+> **Why this template deploys differently.** The other create-harper templates deploy _by reference_: the cluster clones your repo at a pinned commit and builds there. Next.js can't do that yet — `.next` is gitignored, so a git reference carries no build output, and an on-cluster build currently fails ([nextjs#57](https://github.com/HarperFast/nextjs/issues/57), [nextjs#58](https://github.com/HarperFast/nextjs/issues/58)). Until those land, this template uploads the build itself.
 
 ## Keep Going!
 

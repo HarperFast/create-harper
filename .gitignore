@@ -1,6 +1,11 @@
 .DS_Store
 .temp-integration-tests
 
+# Matches a `node_modules` *symlink* too — git worktrees commonly link to the main checkout's
+# install, and the `node_modules/` entry in the vendored Node.gitignore below has a trailing
+# slash, so it only ever matches a real directory.
+node_modules
+
 # Playwright e2e artifacts
 /test-results/
 /playwright-report/

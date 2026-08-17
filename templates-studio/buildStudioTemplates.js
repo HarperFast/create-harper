@@ -1,6 +1,5 @@
 #!/usr/bin/env node
 
-import fs from 'node:fs';
 import path from 'node:path';
 import { studioTemplateNames } from '../lib/constants/templates.js';
 import { copyDir } from '../lib/fs/copyDir.js';
@@ -20,13 +19,25 @@ import { run } from '../lib/run.js';
 			fromTemplate,
 			toTemplate,
 			// Studio apps run deployed on Harper Fabric (no local `npm run dev`), so skip the
-			// `.claude/launch.json` preview config that only applies to local development.
+			// `.claude/launch.json` preview config that only applies to local development, and the
+			// `_github` deploy workflow: Studio deploys from Studio, and `scripts` is emptied below,
+			// so the workflow's install/test/deploy steps would have nothing to run.
 			// Match on the basename so a clone path containing `_env`/`_claude` doesn't skip everything.
 			(srcFile) => {
 				const filename = path.basename(srcFile);
-				return !filename.startsWith('_env') && filename !== '_claude';
+				return !filename.startsWith('_env') && filename !== '_claude' && filename !== '_github';
 			},
 			(sourceContent, targetPath) => {
+				// Only `npm create harper` knows which package manager invoked it, so it alone can
+				// substitute the `your-package-manager-*` placeholders. Studio templates are cloned
+				// rather than scaffolded, so resolve them to npm here instead of shipping the raw
+				// tokens. Reassigning the parameter, rather than branching on a local, keeps this
+				// applied on every path out of this function — including the fallback return.
+				// Longest token first, so a shorter one can never eat a longer one's prefix.
+				sourceContent = sourceContent
+					.replaceAll('your-package-manager-run-here', 'npm run')
+					.replaceAll('your-package-manager-here', 'npm');
+
 				if (targetPath.endsWith('/package.json')) {
 					return sourceContent
 						.replace(/your-package-name-here/g, `@harperfast/${targetTemplate}-studio`)
@@ -75,10 +86,6 @@ see what different users will be able to access through your API.`,
 			},
 		);
 
-		if (fs.existsSync(path.resolve(fromTemplate, '_github'))) {
-			emptyDir(path.resolve(toTemplate, '.github'));
-			renameFile(path.resolve(toTemplate, '_github'), path.resolve(toTemplate, '.github'));
-		}
 		renameFile(path.resolve(toTemplate, '_nvmrc'), path.resolve(toTemplate, '.nvmrc'));
 		renameFile(path.resolve(toTemplate, '_gitignore'), path.resolve(toTemplate, '.gitignore'));
 		renameFile(path.resolve(toTemplate, '_aiignore'), path.resolve(toTemplate, '.aiignore'));

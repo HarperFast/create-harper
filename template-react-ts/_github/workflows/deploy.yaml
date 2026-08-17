@@ -1,0 +1,63 @@
+# Deploys this app to your Harper cluster by *reference* via `harper deploy by_ref=true`
+# (`your-package-manager-run-here deploy`).
+#
+# Runs on a version tag (e.g. `git tag v1.2.3 && git push --tags`) or manually. The Harper cluster
+# fetches the tagged commit over git+https (pinned by its exact SHA, so peers can't diverge on a
+# moved tag), authenticating a private clone with the encrypted token you sealed once via
+# `your-package-manager-run-here deploy:setup`. The credential lives on the cluster, so this
+# workflow handles no token.
+#
+# Required repository secrets (Settings → Secrets and variables → Actions):
+#   HARPER_CLI_TARGET         your cluster's operations URL, e.g. https://my-cluster.harperdb.io:9925
+#   HARPER_CLI_REFRESH_TOKEN  a long-lived refresh token; the CLI mints a short-lived operation
+#                             token from it on each run, so no password is stored in CI
+#
+# Set both in one command — this pipes them straight from your cluster into GitHub, so the token
+# never appears on screen or in your shell history:
+#
+#   harper login --for-ci | gh secret set --env-file -
+#
+# Public repo? Drop `credential=true` from the `deploy` script — no cluster-side auth needed.
+# See the "Deployment" section of the README for details.
+name: Deploy to Harper Fabric
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+        with:
+          fetch-depth: 0
+          fetch-tags: true
+      # your-package-manager-setup-step-here
+      - name: Set up Node.js
+        uses: actions/setup-node@395ad3262231945c25e8478fd5baf05154b1d79f # v6.1.0
+        with:
+          # your-package-manager-node-cache-here
+          node-version-file: '.nvmrc'
+      - name: Install dependencies
+        run: your-package-manager-install-here
+      - name: Run unit tests
+        run: your-package-manager-run-here test
+      - name: Run lint
+        run: your-package-manager-run-here lint
+      - name: Install Harper CLI
+        # Installed with npm regardless of this project's package manager: it is a global tool, and
+        # npm always comes with the Node.js set up above. Pinned to the 5.2 line (where
+        # deploy-by-reference lands); ^5.2.0 blocks a breaking 6.x bump.
+        run: npm install -g harper@^5.2.0
+      - name: Deploy
+        run: your-package-manager-run-here deploy
+        env:
+          HARPER_CLI_TARGET: ${{ secrets.HARPER_CLI_TARGET }}
+          HARPER_CLI_REFRESH_TOKEN: ${{ secrets.HARPER_CLI_REFRESH_TOKEN }}
