@@ -180,3 +180,56 @@ jobs:
           fi
 
           echo "Integration test passed for ${{ matrix.pkg-manager }} with ${{ matrix.template }}!"
+
+  # The matrix above exercises Yarn 1.x (Classic). Yarn 2+ (Berry) is a different animal: it isn't
+  # on the runner, and a scaffolded project pins no packageManager/.yarnrc.yml, so the generated
+  # deploy workflow provisions it with Corepack (lib/pkg/getWorkflowSubstitutions.js). This job runs
+  # that generated setup + install path for real, in the workflow's own ordering — Corepack
+  # activation with the runner's default Node *before* setup-node swaps it — to prove the activated
+  # Yarn survives the Node swap and that `yarn install --immutable` (which Classic would reject) then
+  # succeeds. deployWorkflow.test.js asserts the generator still emits exactly these commands.
+  yarn-berry-install:
+    name: Yarn Berry deploy-install path
+    runs-on: ubuntu-latest
+    env:
+      YARN_VERSION: 4.9.1
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      # Runs against the runner's default Node, before the pinned Node below — exactly as the
+      # generated workflow's "Set up Yarn" step precedes its "Set up Node.js" step.
+      - name: Activate Yarn Berry with Corepack
+        run: corepack enable && corepack prepare "yarn@$YARN_VERSION" --activate
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version-file: '.nvmrc'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Scaffold a project as `yarn create harper` would
+        env:
+          CREATE_HARPER_SKIP_UPDATE: 'true'
+        run: |
+          npm_config_user_agent="yarn/$YARN_VERSION npm/? node/$(node -v) linux x64" \
+            node index.js berry-app --template vanilla --no-interactive --overwrite
+
+      - name: The generated workflow must drive Yarn through Corepack, not the runner's Yarn 1
+        run: |
+          workflow="berry-app/.github/workflows/deploy.yaml"
+          grep -q "corepack prepare yarn@$YARN_VERSION --activate" "$workflow"
+          grep -q 'yarn install --immutable' "$workflow"
+
+      # The reviewer's failure mode: `yarn install --immutable` under the runner's preinstalled
+      # Yarn 1 errors on the unknown flag. If Corepack activation survived the Node swap, the bare
+      # `yarn` here is Berry and both installs succeed.
+      - name: Run the generated install path
+        working-directory: berry-app
+        run: |
+          echo "yarn is $(yarn --version) at $(which yarn)"
+          yarn install
+          yarn install --immutable

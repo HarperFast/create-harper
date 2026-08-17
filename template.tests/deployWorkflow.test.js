@@ -117,6 +117,26 @@ describe('generated deploy workflows', () => {
 		expect(workflow).not.toContain('your-package-manager');
 	});
 
+	test('Yarn 2+ (Berry) provisions the detected Yarn via Corepack before installing immutably', () => {
+		const workflow = scaffoldFor('vanilla', 'yarn', '4.9.1');
+
+		// Without the Corepack step, `yarn install --immutable` runs under the runner's preinstalled
+		// Yarn 1, which rejects `--immutable`. The verify-yarn-berry-install job in integration.yaml
+		// runs this exact pair of commands on a real runner to prove they work together.
+		expect(workflow).toContain('run: corepack enable && corepack prepare yarn@4.9.1 --activate');
+		expect(workflow).toContain('run: yarn install --immutable');
+		expect(workflow).not.toContain('--frozen-lockfile');
+		expect(workflow).not.toContain('your-package-manager');
+	});
+
+	test('Yarn 1 (Classic) is preinstalled, so no Corepack step and the classic lockfile flag', () => {
+		const workflow = scaffoldFor('vanilla', 'yarn', '1.22.22');
+
+		expect(workflow).not.toContain('corepack');
+		expect(workflow).toContain('run: yarn install --frozen-lockfile');
+		expect(workflow).not.toContain('your-package-manager');
+	});
+
 	test('npm still gets the npm workflow', () => {
 		const workflow = scaffoldFor('vanilla', 'npm', '10.9.0');
 
