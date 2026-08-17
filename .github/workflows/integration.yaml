@@ -233,8 +233,15 @@ jobs:
 
           cd "$PROJECT_DIR"
           echo "yarn is $(yarn --version) at $(command -v yarn)"
+
+          # Stand in for the yarn.lock the user commits: Berry auto-enables immutable installs on a
+          # public PR runner, which forbids creating a lockfile, so disable it for this one seeding
+          # install. (A fresh scaffold ships no lockfile; the deploy workflow runs against a repo
+          # that already has one.)
+          YARN_ENABLE_IMMUTABLE_INSTALLS=false yarn install
+
           # The reviewer's failure mode: `yarn install --immutable` under the runner's preinstalled
-          # Yarn 1 errors on the unknown flag. If the Corepack activation above survived setup-node's
-          # Node swap, this bare `yarn` is Berry and both installs succeed.
-          yarn install
+          # Yarn 1 errors on the unknown flag. That `yarn is 4.9.1` line above already shows the
+          # Corepack activation survived setup-node's Node swap; this proves the generated command
+          # then succeeds under Berry.
           yarn install --immutable
