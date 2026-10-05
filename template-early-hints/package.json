@@ -9,7 +9,7 @@
 		"deploy": "harperdb deploy_component . restart=true replicated=true"
 	},
 	"dependencies": {
-		"fast-xml-parser": "5.11.1"
+		"fast-xml-parser": "5.11.2"
 	},
 	"devDependencies": {
 		"harperdb": "^4.7.15"
