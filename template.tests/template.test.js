@@ -77,9 +77,12 @@ describe('Integration tests', () => {
 				// Credentials come from `harper login` (local) or GitHub Actions secrets (CI); the
 				// scaffolded .env only selects the target cluster.
 				const envContent = fs.readFileSync(path.join(targetDir, '.env'), 'utf-8');
-				expect(envContent).toContain('CLI_TARGET');
+				expect(envContent).toMatch(/^HARPER_CLI_TARGET=/m);
+				expect(envContent).not.toMatch(/^CLI_TARGET=/m);
 				expect(envContent).not.toContain('CLI_TARGET_USERNAME');
 				expect(envContent).not.toContain('CLI_TARGET_PASSWORD');
+				expect(envContent).not.toContain('HARPER_CLI_USERNAME');
+				expect(envContent).not.toContain('HARPER_CLI_PASSWORD');
 			}
 
 			if (fs.existsSync(path.join(templateDir, '_env.example'))) {
