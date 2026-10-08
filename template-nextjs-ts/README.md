@@ -107,8 +107,8 @@ The run's summary names the deployment and its `certification`:
 Each node keeps the releases a deploy replaces. List them, then activate one by its `deployment_id`; nothing is reinstalled:
 
 ```sh
-harper list_deployments project=your-project-name-here
-harper deploy project=your-project-name-here deployment_id=<id> restart=rolling
+harper list_deployments project=your-component-name-here
+harper deploy project=your-component-name-here deployment_id=<id> restart=rolling
 ```
 
 To have a person decide when a release goes live, deploy with `activate=false` instead: it installs the release without serving it, and prints a `deployment_id` you activate later with the second command above.
@@ -119,7 +119,7 @@ To have a person decide when a release goes live, deploy with `activate=false` i
 your-package-manager-run-here deploy
 ```
 
-builds and deploys this directory the same way, as the user you logged in with.
+builds and deploys this directory the same way, as the user you logged in with. It returns once the first node has the release; the response's `restartJobId` is the job that takes it to the others, which `harper get_job id=<restartJobId>` reports on.
 
 ### When a run is refused
 
@@ -127,14 +127,19 @@ If the deploy step fails with a 401, the cluster did not accept the run's token.
 
 ### Moving from the earlier workflow
 
-Projects created before this used a `HARPER_CLI_REFRESH_TOKEN` secret and deployed on version tags. Delete that secret under **Settings → Secrets and variables → Actions**: a stored credential takes precedence over the identity token. Then run `deploy:setup-ci` as above.
+Projects created before this deployed on version tags with a `HARPER_CLI_REFRESH_TOKEN` secret, and don't have this workflow or the `deploy:setup-ci` script. To move one over:
+
+1. Scaffold a new project with the same name and template (`npm create harper@latest`), and copy its `.github/workflows/deploy.yaml` over yours.
+2. Run the setup from the project: `harper deploy setup=true provider=github-actions project=<your project>`.
+3. Push the new workflow to `main`.
+4. Once nothing references it, delete the `HARPER_CLI_REFRESH_TOKEN` secret under **Settings → Secrets and variables → Actions**. The new workflow doesn't read it, so it is only a credential left lying around.
 
 ### Private npm dependencies
 
 The cluster installs your dependencies itself. If any come from a private npm registry, give the cluster a read-only token for it once. It is encrypted on your machine, and only the ciphertext is stored:
 
 ```sh
-harper deploy setup=true provider=npm project=your-project-name-here registry=https://npm.pkg.github.com scope=@your-org
+harper deploy setup=true provider=npm project=your-component-name-here registry=https://npm.pkg.github.com scope=@your-org
 ```
 
 Leave out `registry=` and `scope=` for a private package on npmjs.com.

@@ -97,7 +97,7 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 
 			expect(deploy).toContain('[ -n "$HARPER_CLI_TARGET" ] ||');
 			expect(deploy).toContain(
-				'harper deploy project=your-project-name-here restart=rolling json=true > "$RUNNER_TEMP/deploy.json"',
+				'harper deploy project=your-component-name-here restart=rolling json=true > "$RUNNER_TEMP/deploy.json"',
 			);
 			expect(deploy).toContain('npm install --global harper@^5.3');
 			// A rolling deploy with no job id must fail, not pass unverified.
@@ -105,6 +105,21 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 				'[ -n "$JOB_ID" ] || { echo "::error::The rolling deploy returned no restartJobId"; exit 1; }',
 			);
 			expect(deploy).toContain('harper get_job id="$JOB_ID" json=true > "$RUNNER_TEMP/job.json" || continue');
+		});
+
+		// A run whose tests finished late must not deploy over a newer commit.
+		test(`${dir} skips a run that main has moved past`, () => {
+			const deploy = jobBlock(fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8'), 'deploy');
+
+			expect(deploy).toContain('HEAD=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_REF_NAME" --jq .sha)');
+			const gated = deploy.split('\n      - name: ').slice(2);
+			expect(gated.length).toBeGreaterThan(0);
+			for (const step of gated) {
+				if (step.startsWith('your-package-manager') || !step.includes('\n')) { continue; }
+				expect(step, step.split('\n')[0]).toMatch(
+					/if: (\$\{\{ !cancelled\(\) && )?steps\.current\.outputs\.deploy == 'true'/,
+				);
+			}
 		});
 
 		test(`${dir} pins the actions this repository's own CI uses`, () => {
@@ -204,6 +219,22 @@ describe('generated deploy workflows', () => {
 		expect(workflow).not.toContain('corepack');
 		expect(workflow).toContain('run: yarn install --frozen-lockfile');
 		expect(workflow).not.toContain('your-package-manager');
+	});
+
+	// The project name comes from the directory, which may hold spaces or shell syntax, and it is
+	// substituted into shell commands: only a component name may reach them.
+	test('a project name with shell syntax deploys as a sanitized component name', () => {
+		const target = path.join(tempDir, 'shell-syntax');
+		scaffoldProject(target, 'my app; printf X', 'my-app', 'vanilla', undefined, 'npm', '10.9.0');
+		const workflow = fs.readFileSync(path.join(target, '.github', 'workflows', 'deploy.yaml'), 'utf-8');
+		const pkgJson = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf-8'));
+
+		expect(workflow).toContain('harper deploy project=my-app-printf-X restart=rolling');
+		expect(workflow).not.toContain('; printf X');
+		expect(pkgJson.scripts.deploy).toBe('harper deploy project=my-app-printf-X restart=rolling');
+		expect(pkgJson.scripts['deploy:setup-ci']).toBe(
+			'harper deploy setup=true provider=github-actions project=my-app-printf-X',
+		);
 	});
 
 	test('npm still gets the npm workflow', () => {
