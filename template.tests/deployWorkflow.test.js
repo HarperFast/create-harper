@@ -115,6 +115,17 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 			);
 		});
 
+		// A re-run keeps its original commit, so it must not redeploy one main has moved past.
+		test(`${dir} refuses to re-run a deploy of a commit that is no longer the branch tip`, () => {
+			const deploy = jobBlock(fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8'), 'deploy');
+			const guard = deploy.indexOf('- name: Refuse to redeploy an older commit');
+
+			expect(guard).toBeGreaterThan(-1);
+			expect(guard).toBeLessThan(deploy.indexOf('- name: Deploy\n'));
+			expect(deploy).toContain('if: github.run_attempt > 1');
+			expect(deploy).toContain('[ "$HEAD" = "$GITHUB_SHA" ] ||');
+		});
+
 		test(`${dir} pins the actions this repository's own CI uses`, () => {
 			const workflow = fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8');
 
