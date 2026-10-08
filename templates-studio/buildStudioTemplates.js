@@ -80,7 +80,9 @@ see what different users will be able to access through your API.`,
 						// Remove a few sections
 						.replace(/#+ Installation[\s\S]+?\n#/g, '#')
 						.replace(/#+ Development[\s\S]+?\n#/g, '#')
-						.replace(/#+ Deployment[\s\S]+?\n#/g, '#');
+						// Up to the next `## ` heading: Studio deploys from Studio, so none of the section's
+						// subsections apply, unlike Development's, which the replacements above rewrite.
+						.replace(/^## Deployment\n[\s\S]*?(?=^## )/m, '');
 				}
 				return sourceContent;
 			},

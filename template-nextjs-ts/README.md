@@ -56,45 +56,88 @@ Put data access in **server actions** (see [`app/actions.ts`](./app/actions.ts))
 
 ## Deployment
 
-When you are ready, head to [https://fabric.harper.fast/](https://fabric.harper.fast/), log in to your account, and create a cluster.
+Your app deploys from GitHub: every pull request runs lint, and merging to `main` deploys to your Harper cluster with the included [GitHub Actions workflow](./.github/workflows/deploy.yaml). No Harper password or token is stored in GitHub.
 
-Come back and log your local CLI into your cluster:
+First, head to [https://fabric.harper.fast/](https://fabric.harper.fast/), log in, and create a cluster. Then log your local CLI in to it as a super user:
 
 ```sh
 harper login
 ```
 
-Then deploy your app:
+### How the workflow authenticates
+
+The workflow runs plain `harper` commands, such as `harper deploy`, with no credentials on them. Each one authenticates by itself, because:
+
+- the deploy job has `permissions: id-token: write`, so the CLI can ask GitHub for an identity token for the run;
+- `HARPER_CLI_TARGET` is set to your cluster's URL, so the CLI asks for a token addressed to that cluster;
+- the cluster holds a **trust policy** that accepts tokens from this repository's `deploy.yaml`, on `main`, in the `production` environment, and lets them act as a deploy-only user.
+
+The CLI trades the token for a one-hour Harper token, and the run prints which policy it used, like `Authenticated as 'my-app-ci-deploy' via OIDC trust policy 'github-actions-my-app'`. Every `harper` command in that job works the same way, so you can add more steps without adding credentials.
+
+### One-time setup
+
+Push the project to a GitHub repository, then run this from the project on your machine. It needs Harper 5.4 or later (`npm install --global harper`):
+
+```sh
+your-package-manager-run-here deploy:setup-ci
+```
+
+It creates, on the cluster:
+
+- a role that can run only `deploy_component` and `get_job` (to wait for the rollout), and a user in it;
+- the trust policy, checked against your `.github/workflows/deploy.yaml` so it matches what a run will present.
+
+With the [`gh` CLI](https://cli.github.com) signed in, it also sets the `HARPER_CLI_TARGET` repository variable; otherwise it prints the command to run. Running it again changes nothing. If something on the cluster already exists and differs, it stops and says what, without changing anything.
+
+Then merge to `main`, or run the workflow from the **Actions** tab, to deploy.
+
+The deploy user can deploy any app on the cluster, so who can deploy comes down to who can merge to `main`. Protect `main` under **Settings → Branches**, and if you want a person to approve each release, add a required reviewer to the `production` environment under **Settings → Environments**.
+
+### What a deploy does
+
+The workflow runs `next build` and uploads the project with its `.next` build, so no build runs on the cluster (building there currently fails; see the note in [`config.yaml`](./config.yaml)). It deploys with `restart=rolling`: each node restarts in turn, so the cluster keeps serving. On Harper 5.4 and later, each node first loads the release in a canary worker, and only serves it if it loads. A release that fails to load is rejected, the run fails and names the node, and the previous release keeps serving.
+
+The run's summary names the deployment and its `certification`:
+
+- `certified`: the canary loaded the release.
+- `uncertified` or `unavailable`: the release went out without that check, for a reason the [deploy reference](https://docs.harperdb.io/reference/v5/operations-api/operations#certifying-a-release-in-a-canary-worker) lists.
+
+### Going back to an earlier release
+
+Each node keeps the releases a deploy replaces. List them, then activate one by its `deployment_id`; nothing is reinstalled:
+
+```sh
+harper list_deployments project=your-project-name-here
+harper deploy project=your-project-name-here deployment_id=<id> restart=rolling
+```
+
+To have a person decide when a release goes live, deploy with `activate=false` instead: it installs the release without serving it, and prints a `deployment_id` you activate later with the second command above.
+
+### Deploying by hand
 
 ```sh
 your-package-manager-run-here deploy
 ```
 
-`your-package-manager-run-here deploy` runs `next build` locally and ships the prebuilt `.next` output, then Harper serves it — no build runs on the cluster. (Building on the cluster currently fails; see the note in [`config.yaml`](./config.yaml).)
+builds and deploys this directory the same way, as the user you logged in with.
 
-### Deploy automatically from CI
+### When a run is refused
 
-The included [GitHub Actions workflow](./.github/workflows/deploy.yaml) builds and deploys whenever you push a version tag:
+If the deploy step fails with a 401, the cluster did not accept the run's token. `harper list_oidc_trust` shows each policy, and an `invalid_reason` when one can't match; the cluster's `oidc-trust` log says which check failed. Rerunning `your-package-manager-run-here deploy:setup-ci` reports a policy that no longer matches the workflow.
 
-```sh
-git tag v1.0.0
-git push --tags
-```
+### Moving from the earlier workflow
 
-Add these repository secrets first, under **Settings → Secrets and variables → Actions**:
+Projects created before this used a `HARPER_CLI_REFRESH_TOKEN` secret and deployed on version tags. Delete that secret under **Settings → Secrets and variables → Actions**: a stored credential takes precedence over the identity token. Then run `deploy:setup-ci` as above.
 
-- `HARPER_CLI_TARGET` — your cluster's operations URL (e.g. `https://your-cluster.harperdb.io:9925`)
-- `HARPER_CLI_REFRESH_TOKEN` — a long-lived token CI authenticates with, so no password is stored
+### Private npm dependencies
 
-Set both in one command — this pipes the credentials straight from your cluster into GitHub, so the token never appears on screen or in your shell history:
+The cluster installs your dependencies itself. If any come from a private npm registry, give the cluster a read-only token for it once. It is encrypted on your machine, and only the ciphertext is stored:
 
 ```sh
-harper login --for-ci | gh secret set --env-file -
+harper deploy setup=true provider=npm project=your-project-name-here registry=https://npm.pkg.github.com scope=@your-org
 ```
 
-(No [`gh` CLI](https://cli.github.com)? `harper login --for-ci | pbcopy` copies the two lines for you to paste in by hand.)
-
-> **Why this template deploys differently.** The other create-harper templates deploy _by reference_: the cluster clones your repo at a pinned commit and builds there. Next.js can't do that yet — `.next` is gitignored, so a git reference carries no build output, and an on-cluster build currently fails ([nextjs#57](https://github.com/HarperFast/nextjs/issues/57), [nextjs#58](https://github.com/HarperFast/nextjs/issues/58)). Until those land, this template uploads the build itself.
+Leave out `registry=` and `scope=` for a private package on npmjs.com.
 
 ## Keep Going!
 

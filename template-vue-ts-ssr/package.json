@@ -13,8 +13,9 @@
 		"test": "node --test test/*.test.ts",
 		"test:watch": "node --watch --test test/*.test.ts",
 		"build": "vite build",
-		"deploy": "harper deploy by_ref=true credential=true restart=true replicated=true",
-		"deploy:setup": "harper deploy setup=true"
+		"deploy": "harper deploy project=your-project-name-here restart=rolling",
+		"deploy:setup": "harper deploy setup=true project=your-project-name-here",
+		"deploy:setup-ci": "harper deploy setup=true provider=github-actions project=your-project-name-here"
 	},
 	"dependencies": {
 		"@harperfast/schema-codegen": "^2.0.0",
