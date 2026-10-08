@@ -12,8 +12,9 @@
 		"format": "prettier --write .",
 		"test": "node --test test/*.test.js",
 		"test:watch": "node --watch --test test/*.test.js",
-		"deploy": "harper deploy by_ref=true credential=true restart=true replicated=true",
-		"deploy:setup": "harper deploy setup=true"
+		"deploy": "harper deploy project=your-project-name-here restart=rolling",
+		"deploy:setup": "harper deploy setup=true project=your-project-name-here",
+		"deploy:setup-ci": "harper deploy setup=true provider=github-actions project=your-project-name-here"
 	},
 	"devDependencies": {
 		"@eslint/js": "^10.0.1",

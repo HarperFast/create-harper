@@ -47,6 +47,76 @@ describe('deploy workflows are package-manager agnostic', () => {
 	}
 });
 
+/**
+ * The deploy job authenticates with GitHub's OIDC identity token, which the cluster accepts only
+ * under a trust policy pinning this repository, `deploy.yaml` on `main`, and the `production`
+ * environment (`harper deploy setup=true provider=github-actions`, run as `deploy:setup-ci`).
+ */
+describe('deploy workflows deploy on merge with OIDC', () => {
+	/**
+	 * The text of one top-level job, from its key to the next job's.
+	 *
+	 * @param {string} workflow - The workflow's contents.
+	 * @param {string} job - The job's key.
+	 * @returns {string} - That job's lines.
+	 */
+	function jobBlock(workflow, job) {
+		const start = workflow.indexOf(`\n  ${job}:\n`);
+		expect(start, `job ${job}`).toBeGreaterThan(-1);
+		const next = workflow.slice(start + 1).search(/\n {2}[\w-]+:\n/);
+		return next === -1 ? workflow.slice(start) : workflow.slice(start, start + 1 + next);
+	}
+
+	for (const dir of templateDirs) {
+		test(`${dir} tests pull requests and deploys merges to main`, () => {
+			const workflow = fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8');
+
+			expect(workflow).toMatch(/\non:\n {2}pull_request:\n {2}push:\n {4}branches: \[main\]\n {2}workflow_dispatch:\n/);
+			expect(workflow).not.toContain('tags:');
+			expect(jobBlock(workflow, 'deploy')).toContain(
+				"if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'",
+			);
+			expect(jobBlock(workflow, 'deploy')).toContain('environment: production');
+		});
+
+		test(`${dir} holds no Harper credential, and only the deploy job may mint an identity token`, () => {
+			const workflow = fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8');
+
+			expect(workflow.match(/^ +id-token: write$/gm)).toHaveLength(1);
+			expect(jobBlock(workflow, 'deploy')).toContain('id-token: write');
+			expect(workflow).toMatch(/\npermissions:\n {2}contents: read\n/);
+			expect(workflow).toContain('HARPER_CLI_TARGET: ${{ vars.HARPER_CLI_TARGET }}');
+			expect(workflow).not.toContain('HARPER_CLI_REFRESH_TOKEN');
+			expect(workflow).not.toContain('secrets.');
+			// The deploy uploads the checkout, `.git` included, so the job's token must not be in it.
+			expect(jobBlock(workflow, 'deploy')).toContain('persist-credentials: false');
+		});
+
+		test(`${dir} deploys an explicit project and waits for the rolling job`, () => {
+			const deploy = jobBlock(fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8'), 'deploy');
+
+			expect(deploy).toContain('[ -n "$HARPER_CLI_TARGET" ] ||');
+			expect(deploy).toContain(
+				'harper deploy project=your-project-name-here restart=rolling json=true > "$RUNNER_TEMP/deploy.json"',
+			);
+			expect(deploy).toContain('npm install --global harper@^5.3');
+			// A rolling deploy with no job id must fail, not pass unverified.
+			expect(deploy).toContain(
+				'[ -n "$JOB_ID" ] || { echo "::error::The rolling deploy returned no restartJobId"; exit 1; }',
+			);
+			expect(deploy).toContain('harper get_job id="$JOB_ID" json=true > "$RUNNER_TEMP/job.json" || continue');
+		});
+
+		test(`${dir} pins the actions this repository's own CI uses`, () => {
+			const workflow = fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8');
+
+			expect(workflow).not.toMatch(/actions\/checkout@\S+ # v6/);
+			expect(workflow).toContain('actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1');
+			expect(workflow).toContain('actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0');
+		});
+	}
+});
+
 describe('generated deploy workflows', () => {
 	/** @type {string} */
 	let tempDir;
@@ -84,12 +154,11 @@ describe('generated deploy workflows', () => {
 		expect(workflow).toContain("cache: 'pnpm'");
 		expect(workflow).toContain('run: pnpm install --frozen-lockfile');
 		expect(workflow).toContain('run: pnpm run test');
-		expect(workflow).toContain('run: pnpm run deploy');
 
 		expect(workflow).not.toContain('npm ci');
 		expect(workflow).not.toContain("cache: 'npm'");
 		// The Harper CLI is the one deliberate npm holdout.
-		expect(workflow).toContain('run: npm install -g harper@');
+		expect(workflow).toContain('run: npm install --global harper@');
 
 		// No placeholder may survive into a scaffolded project.
 		expect(workflow).not.toContain('your-package-manager');
@@ -102,7 +171,7 @@ describe('generated deploy workflows', () => {
 		expect(workflow).toContain('uses: oven-sh/setup-bun@');
 		expect(workflow).toContain('bun-version: 1.2.19');
 		expect(workflow).toContain('run: bun install --frozen-lockfile');
-		expect(workflow).toContain('run: bun run deploy');
+		expect(workflow).toContain('run: bun run test');
 
 		expect(workflow).not.toMatch(/cache: '/);
 		expect(workflow).not.toContain('your-package-manager');
@@ -113,7 +182,7 @@ describe('generated deploy workflows', () => {
 
 		expect(workflow).toContain('- name: Set up Deno');
 		expect(workflow).toContain('run: deno install --frozen');
-		expect(workflow).toContain('run: deno task deploy');
+		expect(workflow).toContain('run: deno task test');
 		expect(workflow).not.toContain('your-package-manager');
 	});
 
@@ -142,20 +211,20 @@ describe('generated deploy workflows', () => {
 
 		expect(workflow).toContain("cache: 'npm'");
 		expect(workflow).toContain('run: npm ci');
-		expect(workflow).toContain('run: npm run deploy');
+		expect(workflow).toContain('run: npm run test');
 		expect(workflow).not.toContain('your-package-manager');
 	});
 
-	// The Next.js templates keep their own payload-deploy workflow instead of the shared
-	// by-reference one, so it needs the same treatment rather than inheriting it from the fan-out.
-	test('the standalone Next.js payload workflow follows the package manager too', () => {
+	// The Next.js templates keep their own copy of the workflow, which builds before it deploys, so
+	// it needs the same treatment rather than inheriting it from the fan-out.
+	test('the standalone Next.js workflow follows the package manager too', () => {
 		const workflow = scaffoldFor('nextjs', 'pnpm', '11.17.0');
 
-		expect(workflow).toContain('harper deploy_component');
+		expect(workflow).toContain('harper deploy project=test-project restart=rolling');
 		expect(workflow).toContain('- name: Set up pnpm');
 		expect(workflow).toContain("cache: 'pnpm'");
 		expect(workflow).toContain('run: pnpm install --frozen-lockfile');
-		expect(workflow).toContain('run: pnpm run deploy');
+		expect(workflow).toContain('run: pnpm run build');
 
 		expect(workflow).not.toContain('npm ci');
 		expect(workflow).not.toContain('your-package-manager');
