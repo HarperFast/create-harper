@@ -84,6 +84,8 @@ npm run deploy:setup-ci
 
 It creates a deploy-only user and the trust policy on the cluster, and sets the workflow's `HARPER_CLI_TARGET` repository variable. Each project's README covers the rest: going back to an earlier release, staging a release, and what to do when a run is refused.
 
+Projects created before this deploy on version tags with a stored `HARPER_CLI_REFRESH_TOKEN`. To move one over, scaffold a new project with the same name, template and package manager, copy its `.github/workflows/deploy.yaml` over yours, run `harper deploy setup=true provider=github-actions project=<the workflow's project= value>`, push, and then delete the old secret.
+
 ## Auto-updates
 
 `create-harper` will automatically check for newer versions on npm. If a newer version is available, it will automatically re-run the process using the latest version to ensure you are using the most up-to-date templates and features.

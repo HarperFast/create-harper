@@ -176,8 +176,8 @@ If the deploy step fails with a 401, the cluster did not accept the run's token.
 
 Projects created before this deployed on version tags with a `HARPER_CLI_REFRESH_TOKEN` secret, and don't have this workflow or the `deploy:setup-ci` script. To move one over:
 
-1. Scaffold a new project with the same name and template (`npm create harper@latest`), and copy its `.github/workflows/deploy.yaml` over yours.
-2. Run the setup from the project: `harper deploy setup=true provider=github-actions project=<your project>`.
+1. Scaffold a new project with the same name and template, using the package manager your project uses (for example `pnpm create harper`), and copy its `.github/workflows/deploy.yaml` over yours.
+2. Run the setup from the project, with the `project=` value the copied workflow passes to `harper deploy`: `harper deploy setup=true provider=github-actions project=<that value>`.
 3. Push the new workflow to `main`.
 4. Once nothing references it, delete the `HARPER_CLI_REFRESH_TOKEN` secret under **Settings → Secrets and variables → Actions**. The new workflow doesn't read it, so it is only a credential left lying around.
 
