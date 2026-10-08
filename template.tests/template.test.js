@@ -88,20 +88,20 @@ describe('Integration tests', () => {
 			// The deploy workflow must live under `.github/workflows/` (plural — GitHub only runs
 			// workflows there; the singular `workflow/` these templates used to ship never triggered).
 			expect(fs.existsSync(path.join(targetDir, '.github', 'workflows', 'deploy.yaml'))).toBe(true);
-			// Deploy and its setup are driven by the native harper CLI, never a per-project script.
+			// Deploy and its setup run the harper CLI, never a script copied into the project.
 			expect(fs.existsSync(path.join(targetDir, 'scripts'))).toBe(false);
 			expect(pkgJson.scripts['deploy:setup-ci']).toBe(
 				`harper deploy setup=true provider=github-actions project=${projectName}`,
 			);
+			// Payload deploys need no clone credential; a private npm registry is set up by hand.
+			expect(pkgJson.scripts['deploy:setup']).toBeUndefined();
 
 			if (BUILD_BEFORE_DEPLOY_TEMPLATES.has(template)) {
 				// Building on the cluster fails for Next.js (HarperFast/nextjs#57, #58), so the deploy
 				// uploads a `.next` built here.
 				expect(pkgJson.scripts.deploy).toBe(`next build && harper deploy project=${projectName} restart=rolling`);
-				expect(pkgJson.scripts['deploy:setup']).toBeUndefined();
 			} else {
 				expect(pkgJson.scripts.deploy).toBe(`harper deploy project=${projectName} restart=rolling`);
-				expect(pkgJson.scripts['deploy:setup']).toBe(`harper deploy setup=true project=${projectName}`);
 			}
 		});
 	}

@@ -1,16 +1,7 @@
-# Tests every pull request, and deploys to your Harper cluster when a change merges to `main`.
-#
-# The deploy job holds no Harper credential. It runs plain `harper` commands, and because the job
-# may request a GitHub OIDC identity token (`id-token: write`) and HARPER_CLI_TARGET names your
-# cluster, each one authenticates by trading that token under a trust policy on the cluster.
-#
-# One-time setup, from this project on your machine (Harper 5.4+, signed in to the cluster as a
-# super user with `harper login`):
-#
-#   your-package-manager-run-here deploy:setup-ci
-#
-# It creates the trust policy and a deploy-only user on the cluster, and sets the HARPER_CLI_TARGET
-# repository variable. See the "Deployment" section of the README.
+# Tests every pull request, and deploys to your Harper cluster when a change merges to `main`. The
+# deploy job holds no Harper credential: its `harper` commands authenticate with GitHub's OIDC token
+# under a trust policy on the cluster. Set that up once with
+# `your-package-manager-run-here deploy:setup-ci` (see "Deployment" in the README).
 name: Deploy to Harper
 on:
   pull_request:
@@ -46,8 +37,6 @@ jobs:
     needs: test
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
-    # The trust policy pins this environment. Under Settings → Environments you can also limit it to
-    # `main`, or require a reviewer before a deploy runs.
     environment: production
     concurrency:
       group: deploy-production
@@ -56,30 +45,45 @@ jobs:
       contents: read
       id-token: write
     env:
-      # A repository variable, not a secret: it is only the cluster's address.
       HARPER_CLI_TARGET: ${{ vars.HARPER_CLI_TARGET }}
     steps:
+      - name: Skip if main has moved on
+        id: current
+        # A run whose tests finished late must not deploy over a newer commit that already deployed.
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          HEAD=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_REF_NAME" --jq .sha)
+          if [ "$HEAD" = "$GITHUB_SHA" ]; then
+            echo "deploy=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "::notice::main is now at $HEAD, so this run's $GITHUB_SHA is not deployed"
+            echo "deploy=false" >> "$GITHUB_OUTPUT"
+          fi
       - name: Checkout code
+        if: steps.current.outputs.deploy == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # The deploy uploads this directory, `.git` included, so keep the job's token out of it.
           persist-credentials: false
       - name: Set up Node.js
+        if: steps.current.outputs.deploy == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: '.nvmrc'
       - name: Install Harper CLI
-        # With npm whatever this project uses: it is a global tool, and npm comes with Node.js. 5.3
-        # is the first CLI that authenticates with the OIDC token.
+        if: steps.current.outputs.deploy == 'true'
+        # 5.3 is the first CLI that authenticates with the OIDC token.
         run: npm install --global harper@^5.3
       - name: Deploy
+        if: steps.current.outputs.deploy == 'true'
         run: |
           # With no target the CLI would fall back to a saved login or a local node, and succeed.
           [ -n "$HARPER_CLI_TARGET" ] || { echo "::error::Set the HARPER_CLI_TARGET repository variable: run your-package-manager-run-here deploy:setup-ci"; exit 1; }
-          harper deploy project=your-project-name-here restart=rolling json=true > "$RUNNER_TEMP/deploy.json"
+          harper deploy project=your-component-name-here restart=rolling json=true > "$RUNNER_TEMP/deploy.json"
       - name: Wait for every node to take the release
-        # The deploy step passes once the node it reached has the release. The others take it one at
-        # a time in a job, and a node that rejects it fails that job, so wait for it.
+        if: steps.current.outputs.deploy == 'true'
+        # The deploy returns once the node it reached has the release; the others take it in a job.
         run: |
           JOB_ID=$(jq -r '.restartJobId // empty' "$RUNNER_TEMP/deploy.json")
           [ -n "$JOB_ID" ] || { echo "::error::The rolling deploy returned no restartJobId"; exit 1; }
@@ -97,13 +101,19 @@ jobs:
           echo "::error::After 60 polls, job $JOB_ID $LAST"
           exit 1
       - name: Summarize
-        if: ${{ !cancelled() }}
+        if: ${{ !cancelled() && steps.current.outputs.deploy == 'true' }}
+        env:
+          JOB_STATUS: ${{ job.status }}
         run: |
           [ -s "$RUNNER_TEMP/deploy.json" ] || exit 0
           {
-            echo "### Deployed your-project-name-here"
+            if [ "$JOB_STATUS" = success ]; then
+              echo "### Deployed your-component-name-here"
+            else
+              echo "### Deploy of your-component-name-here did not complete on every node"
+            fi
             jq -r '"- Deployment: `\(.deployment_id // "unknown")`\n- Certification: `\(.certification // "not reported")`"' "$RUNNER_TEMP/deploy.json"
             echo ""
-            echo "To go back to an earlier release, list them with \`harper list_deployments project=your-project-name-here\`,"
-            echo "then activate one with \`harper deploy project=your-project-name-here deployment_id=<id> restart=rolling\`."
+            echo "To go back to an earlier release, list them with \`harper list_deployments project=your-component-name-here\`,"
+            echo "then activate one with \`harper deploy project=your-component-name-here deployment_id=<id> restart=rolling\`."
           } >> "$GITHUB_STEP_SUMMARY"
