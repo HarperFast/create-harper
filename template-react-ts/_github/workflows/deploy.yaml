@@ -12,6 +12,12 @@ on:
 permissions:
   contents: read
 
+# One run per branch at a time, so an older commit can't deploy after a newer one; a newer run
+# replaces one still waiting. On a pull request, a new push cancels the run in progress.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -38,51 +44,30 @@ jobs:
     if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     environment: production
-    concurrency:
-      group: deploy-production
-      cancel-in-progress: false
     permissions:
       contents: read
       id-token: write
     env:
       HARPER_CLI_TARGET: ${{ vars.HARPER_CLI_TARGET }}
     steps:
-      - name: Skip if main has moved on
-        id: current
-        # A run whose tests finished late must not deploy over a newer commit that already deployed.
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          HEAD=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_REF_NAME" --jq .sha)
-          if [ "$HEAD" = "$GITHUB_SHA" ]; then
-            echo "deploy=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice::main is now at $HEAD, so this run's $GITHUB_SHA is not deployed"
-            echo "deploy=false" >> "$GITHUB_OUTPUT"
-          fi
       - name: Checkout code
-        if: steps.current.outputs.deploy == 'true'
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           # The deploy uploads this directory, `.git` included, so keep the job's token out of it.
           persist-credentials: false
       - name: Set up Node.js
-        if: steps.current.outputs.deploy == 'true'
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version-file: '.nvmrc'
       - name: Install Harper CLI
-        if: steps.current.outputs.deploy == 'true'
         # 5.3 is the first CLI that authenticates with the OIDC token.
         run: npm install --global harper@^5.3
       - name: Deploy
-        if: steps.current.outputs.deploy == 'true'
         run: |
           # With no target the CLI would fall back to a saved login or a local node, and succeed.
           [ -n "$HARPER_CLI_TARGET" ] || { echo "::error::Set the HARPER_CLI_TARGET repository variable: run your-package-manager-run-here deploy:setup-ci"; exit 1; }
           harper deploy project=your-component-name-here restart=rolling json=true > "$RUNNER_TEMP/deploy.json"
       - name: Wait for every node to take the release
-        if: steps.current.outputs.deploy == 'true'
         # The deploy returns once the node it reached has the release; the others take it in a job.
         run: |
           JOB_ID=$(jq -r '.restartJobId // empty' "$RUNNER_TEMP/deploy.json")
@@ -101,7 +86,7 @@ jobs:
           echo "::error::After 60 polls, job $JOB_ID $LAST"
           exit 1
       - name: Summarize
-        if: ${{ !cancelled() && steps.current.outputs.deploy == 'true' }}
+        if: ${{ !cancelled() }}
         env:
           JOB_STATUS: ${{ job.status }}
         run: |

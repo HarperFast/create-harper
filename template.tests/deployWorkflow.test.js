@@ -107,19 +107,12 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 			expect(deploy).toContain('harper get_job id="$JOB_ID" json=true > "$RUNNER_TEMP/job.json" || continue');
 		});
 
-		// A run whose tests finished late must not deploy over a newer commit.
-		test(`${dir} skips a run that main has moved past`, () => {
-			const deploy = jobBlock(fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8'), 'deploy');
+		test(`${dir} runs one at a time per branch, so an older commit can't deploy last`, () => {
+			const workflow = fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8');
 
-			expect(deploy).toContain('HEAD=$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_REF_NAME" --jq .sha)');
-			const gated = deploy.split('\n      - name: ').slice(2);
-			expect(gated.length).toBeGreaterThan(0);
-			for (const step of gated) {
-				if (step.startsWith('your-package-manager') || !step.includes('\n')) { continue; }
-				expect(step, step.split('\n')[0]).toMatch(
-					/if: (\$\{\{ !cancelled\(\) && )?steps\.current\.outputs\.deploy == 'true'/,
-				);
-			}
+			expect(workflow).toContain(
+				"\nconcurrency:\n  group: deploy-${{ github.ref }}\n  cancel-in-progress: ${{ github.event_name == 'pull_request' }}\n",
+			);
 		});
 
 		test(`${dir} pins the actions this repository's own CI uses`, () => {
@@ -223,8 +216,8 @@ describe('generated deploy workflows', () => {
 
 	// The project name comes from the directory, which may hold spaces or shell syntax, and it is
 	// substituted into shell commands: only a component name may reach them.
-	test('a project name with shell syntax deploys as a sanitized component name', () => {
-		const target = path.join(tempDir, 'shell-syntax');
+	test('a project directory with shell syntax deploys as a sanitized component name', () => {
+		const target = path.join(tempDir, 'my app; printf X');
 		scaffoldProject(target, 'my app; printf X', 'my-app', 'vanilla', undefined, 'npm', '10.9.0');
 		const workflow = fs.readFileSync(path.join(target, '.github', 'workflows', 'deploy.yaml'), 'utf-8');
 		const pkgJson = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf-8'));
@@ -235,6 +228,15 @@ describe('generated deploy workflows', () => {
 		expect(pkgJson.scripts['deploy:setup-ci']).toBe(
 			'harper deploy setup=true provider=github-actions project=my-app-printf-X',
 		);
+	});
+
+	// `create-harper .` passes `.` as the project name; the app still deploys under its directory's name.
+	test('scaffolding into the current directory deploys under that directory name', () => {
+		const target = path.join(tempDir, 'billing');
+		scaffoldProject(target, '.', 'billing', 'vanilla', undefined, 'npm', '10.9.0');
+		const pkgJson = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf-8'));
+
+		expect(pkgJson.scripts.deploy).toBe('harper deploy project=billing restart=rolling');
 	});
 
 	test('npm still gets the npm workflow', () => {
@@ -251,7 +253,7 @@ describe('generated deploy workflows', () => {
 	test('the standalone Next.js workflow follows the package manager too', () => {
 		const workflow = scaffoldFor('nextjs', 'pnpm', '11.17.0');
 
-		expect(workflow).toContain('harper deploy project=test-project restart=rolling');
+		expect(workflow).toContain('harper deploy project=nextjs-pnpm restart=rolling');
 		expect(workflow).toContain('- name: Set up pnpm');
 		expect(workflow).toContain("cache: 'pnpm'");
 		expect(workflow).toContain('run: pnpm install --frozen-lockfile');
