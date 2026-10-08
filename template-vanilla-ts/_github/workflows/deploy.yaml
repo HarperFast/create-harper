@@ -102,8 +102,10 @@ jobs:
           {
             if [ "$JOB_STATUS" = success ]; then
               echo "### Deployed your-component-name-here"
-            else
+            elif jq -e '.deployment_id' "$RUNNER_TEMP/deploy.json" > /dev/null; then
               echo "### Deploy of your-component-name-here did not complete on every node"
+            else
+              echo "### Deploy of your-component-name-here failed"
             fi
             jq -r '"- Deployment: `\(.deployment_id // "unknown")`\n- Certification: `\(.certification // "not reported")`"' "$RUNNER_TEMP/deploy.json"
             echo ""
