@@ -54,6 +54,16 @@ describe('deploy workflows are package-manager agnostic', () => {
  */
 describe('deploy workflows deploy on merge with OIDC', () => {
 	/**
+	 * A template's workflow with LF line endings: a Windows checkout has CRLF.
+	 *
+	 * @param {string} dir - The template directory.
+	 * @returns {string} - The workflow's contents.
+	 */
+	function readWorkflow(dir) {
+		return fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8').replaceAll('\r\n', '\n');
+	}
+
+	/**
 	 * The text of one top-level job, from its key to the next job's.
 	 *
 	 * @param {string} workflow - The workflow's contents.
@@ -69,7 +79,7 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 
 	for (const dir of templateDirs) {
 		test(`${dir} tests pull requests and deploys merges to main`, () => {
-			const workflow = fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8');
+			const workflow = readWorkflow(dir);
 
 			expect(workflow).toMatch(/\non:\n {2}pull_request:\n {2}push:\n {4}branches: \[main\]\n {2}workflow_dispatch:\n/);
 			expect(workflow).not.toContain('tags:');
@@ -80,7 +90,7 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 		});
 
 		test(`${dir} holds no Harper credential, and only the deploy job may mint an identity token`, () => {
-			const workflow = fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8');
+			const workflow = readWorkflow(dir);
 
 			expect(workflow.match(/^ +id-token: write$/gm)).toHaveLength(1);
 			expect(jobBlock(workflow, 'deploy')).toContain('id-token: write');
@@ -93,7 +103,7 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 		});
 
 		test(`${dir} deploys an explicit project and waits for the rolling job`, () => {
-			const deploy = jobBlock(fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8'), 'deploy');
+			const deploy = jobBlock(readWorkflow(dir), 'deploy');
 
 			expect(deploy).toContain('[ -n "$HARPER_CLI_TARGET" ] ||');
 			expect(deploy).toContain(
@@ -108,7 +118,7 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 		});
 
 		test(`${dir} runs one at a time per branch, so an older commit can't deploy last`, () => {
-			const workflow = fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8');
+			const workflow = readWorkflow(dir);
 
 			expect(workflow).toContain(
 				"\nconcurrency:\n  group: deploy-${{ github.ref }}\n  cancel-in-progress: ${{ github.event_name == 'pull_request' }}\n",
@@ -117,7 +127,7 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 
 		// A re-run keeps its original commit, so it must not redeploy one main has moved past.
 		test(`${dir} refuses to re-run a deploy of a commit that is no longer the branch tip`, () => {
-			const deploy = jobBlock(fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8'), 'deploy');
+			const deploy = jobBlock(readWorkflow(dir), 'deploy');
 			const guard = deploy.indexOf('- name: Refuse to redeploy an older commit');
 
 			expect(guard).toBeGreaterThan(-1);
@@ -127,7 +137,7 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 		});
 
 		test(`${dir} pins the actions this repository's own CI uses`, () => {
-			const workflow = fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8');
+			const workflow = readWorkflow(dir);
 
 			expect(workflow).not.toMatch(/actions\/checkout@\S+ # v6/);
 			expect(workflow).toContain('actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1');
