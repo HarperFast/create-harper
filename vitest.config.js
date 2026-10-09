@@ -12,6 +12,7 @@ export default defineConfig({
 			'lib/**/*.test.js',
 			'template.tests/staticConfig.test.js',
 			'template.tests/deployWorkflow.test.js',
+			'template.tests/template.test.js',
 		],
 	},
 });
