@@ -139,7 +139,7 @@ your-package-manager-run-here deploy:setup-ci
 
 It creates, on the cluster:
 
-- a role that can run only `deploy_component` and `get_job` (to wait for the rollout), and a user in it;
+- a role that can run only `deploy_component`, `get_job` (to wait for the rollout) and `registration_info` (the CLI's version check), and a user in it;
 - the trust policy, checked against your `.github/workflows/deploy.yaml` so it matches what a run will present.
 
 With the [`gh` CLI](https://cli.github.com) signed in, it also sets the `HARPER_CLI_TARGET` repository variable; otherwise it prints the command to run. Running it again changes nothing. If something on the cluster already exists and differs, it stops and says what, without changing anything.
