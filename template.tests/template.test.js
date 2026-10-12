@@ -73,10 +73,12 @@ describe('Integration tests', () => {
 			const templateDir = path.resolve(root, `template-${template}`);
 			if (fs.existsSync(path.join(templateDir, '_env'))) {
 				expect(fs.existsSync(path.join(targetDir, '.env'))).toBe(true);
-				// Credentials come from `harper login` (local) or GitHub Actions secrets (CI); the
-				// scaffolded .env only selects the target cluster.
+				// Credentials come from `harper login` (local) or the workflow's OIDC token (CI); the
+				// scaffolded .env only selects the target cluster. With no cluster URL given, the target
+				// is commented out: the CLI would use a placeholder ahead of the one `harper login` saves.
 				const envContent = fs.readFileSync(path.join(targetDir, '.env'), 'utf-8');
-				expect(envContent).toMatch(/^HARPER_CLI_TARGET=/m);
+				expect(envContent).toMatch(/^# HARPER_CLI_TARGET=/m);
+				expect(envContent).not.toMatch(/^[ \t]*(?:export[ \t]+)?HARPER_CLI_TARGET[ \t]*[=:]/m);
 				expect(envContent).not.toMatch(/^CLI_TARGET=/m);
 				expect(envContent).not.toContain('CLI_TARGET_USERNAME');
 				expect(envContent).not.toContain('CLI_TARGET_PASSWORD');
@@ -108,4 +110,26 @@ describe('Integration tests', () => {
 			}
 		});
 	}
+
+	test('sets the target in .env when a cluster URL is given', () => {
+		const projectName = 'test-deployment-url';
+		const result = spawnSync('node', [
+			cliPath,
+			projectName,
+			'--template',
+			'vanilla',
+			'--no-interactive',
+			'--overwrite',
+			'--deploymentURL',
+			'cluster.example.com',
+		], {
+			cwd: tempDir,
+			env: { ...process.env, _HARPER_TEST_CLI: '1', CREATE_HARPER_SKIP_UPDATE: '1' },
+			encoding: 'utf-8',
+		});
+
+		expect(result.status, result.stderr).toBe(0);
+		const envContent = fs.readFileSync(path.join(tempDir, projectName, '.env'), 'utf-8');
+		expect(envContent).toMatch(/^HARPER_CLI_TARGET='https:\/\/cluster\.example\.com:9925\/'$/m);
+	});
 });
