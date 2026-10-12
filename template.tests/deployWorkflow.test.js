@@ -146,6 +146,26 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 	}
 });
 
+/**
+ * The cluster installs a deployed app's dependencies itself, and that install omits devDependencies,
+ * so a component package `config.yaml` loads from devDependencies is missing there, and a 5.4
+ * cluster's canary rejects the release.
+ */
+describe('deployed components can load their packages', () => {
+	for (const dir of templateDirs) {
+		test(`${dir} lists every package config.yaml loads in dependencies`, () => {
+			const config = fs.readFileSync(path.join(root, dir, 'config.yaml'), 'utf-8');
+			const pkgJson = JSON.parse(fs.readFileSync(path.join(root, dir, 'package.json'), 'utf-8'));
+			const packages = [...config.matchAll(/^\s+package:\s*['"]?([^'"\s]+)/gm)].map((match) => match[1]);
+
+			expect(packages.length).toBeGreaterThan(0);
+			for (const name of packages) {
+				expect(pkgJson.dependencies?.[name], `${name} in dependencies`).toBeDefined();
+			}
+		});
+	}
+});
+
 describe('generated deploy workflows', () => {
 	/** @type {string} */
 	let tempDir;
