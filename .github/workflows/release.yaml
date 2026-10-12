@@ -32,7 +32,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: Setup Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: '.nvmrc'
           cache: npm
@@ -47,7 +47,7 @@ jobs:
         run: npm test
       - name: Semantic Release
         if: ${{ github.event_name == 'push' }}
-        uses: cycjimmy/semantic-release-action@7261f53f41d97434955b6ca5e26a2b0805f0cba2 # v7.0.0
+        uses: cycjimmy/semantic-release-action@8be816a60e417d22b0e09b61adc23605036497eb # v7.1.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
