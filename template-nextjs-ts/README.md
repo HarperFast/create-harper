@@ -104,11 +104,11 @@ The run's summary names the deployment and its `certification`:
 
 ### Going back to an earlier release
 
-Each node keeps the releases a deploy replaces. List them, then activate one by its `deployment_id`; nothing is reinstalled:
+Each node keeps the releases a deploy replaces. List them, then activate one by putting its `deployment_id` in place of `DEPLOYMENT_ID`; nothing is reinstalled:
 
 ```sh
 harper list_deployments project=your-component-name-here
-harper deploy project=your-component-name-here deployment_id=<id> restart=rolling
+harper deploy project=your-component-name-here deployment_id=DEPLOYMENT_ID restart=rolling
 ```
 
 To have a person decide when a release goes live, deploy with `activate=false` instead: it installs the release without serving it, and prints a `deployment_id` you activate later with the second command above.

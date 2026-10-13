@@ -110,5 +110,5 @@ jobs:
             jq -r '"- Deployment: `\(.deployment_id // "unknown")`\n- Certification: `\(.certification // "not reported")`"' "$RUNNER_TEMP/deploy.json"
             echo ""
             echo "To go back to an earlier release, list them with \`harper list_deployments project=your-component-name-here\`,"
-            echo "then activate one with \`harper deploy project=your-component-name-here deployment_id=<id> restart=rolling\`."
+            echo "then activate one with \`harper deploy project=your-component-name-here deployment_id=DEPLOYMENT_ID restart=rolling\`."
           } >> "$GITHUB_STEP_SUMMARY"
