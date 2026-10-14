@@ -361,8 +361,9 @@ describe('generated deploy workflows', () => {
 		expect(workflow).toContain("cache: 'pnpm'");
 		expect(workflow).toContain('run: pnpm install --frozen-lockfile');
 		expect(workflow).toContain('run: pnpm run build');
-		expect(jobBlock(workflow, 'deploy')).not.toContain('pnpm/action-setup');
-		expect(jobBlock(workflow, 'deploy')).not.toContain('run: pnpm');
+		const deploy = jobBlock(workflow.replaceAll('\r\n', '\n'), 'deploy');
+		expect(deploy).not.toContain('pnpm/action-setup');
+		expect(deploy).not.toContain('run: pnpm');
 
 		expect(workflow).not.toContain('npm ci');
 		expect(workflow).not.toContain('your-package-manager');
