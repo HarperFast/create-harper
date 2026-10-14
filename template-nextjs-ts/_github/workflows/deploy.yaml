@@ -1,9 +1,9 @@
 # Tests every pull request, and deploys to your Harper cluster when a change merges to `main`. The
 # deploy job holds no Harper credential: its `harper` commands authenticate with GitHub's OIDC token
 # under a trust policy on the cluster. Set that up once with
-# `your-package-manager-run-here deploy:setup-ci` (see "Deployment" in the README). The deploy job
-# runs `next build` and uploads it, because building on the cluster currently fails
-# (HarperFast/nextjs#57, HarperFast/nextjs#58).
+# `your-package-manager-run-here deploy:setup-ci` (see "Deployment" in the README). The test job
+# runs `next build` and hands it to the deploy job, which uploads it, because building on the cluster
+# currently fails (HarperFast/nextjs#57, HarperFast/nextjs#58).
 name: Deploy to Harper
 on:
   pull_request:
@@ -38,6 +38,20 @@ jobs:
         run: your-package-manager-install-here
       - name: Run lint
         run: your-package-manager-run-here lint
+      - name: Build
+        run: your-package-manager-run-here build
+      - name: Hand the build to the deploy job
+        # Building here keeps your dependencies' scripts out of the job that can request an OIDC token.
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: next-build
+          path: |
+            .next/
+            !.next/cache/
+          include-hidden-files: true
+          # A re-run of the whole workflow builds again, under the same name.
+          overwrite: true
 
   deploy:
     needs: test
@@ -63,16 +77,15 @@ jobs:
         with:
           # The deploy uploads this directory, `.git` included, so keep the job's token out of it.
           persist-credentials: false
-      # your-package-manager-setup-step-here
+      - name: Download the build
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          name: next-build
+          path: .next
       - name: Set up Node.js
         uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
-          # your-package-manager-node-cache-here
           node-version-file: '.nvmrc'
-      - name: Install dependencies
-        run: your-package-manager-install-here
-      - name: Build
-        run: your-package-manager-run-here build
       - name: Install Harper CLI
         # 5.3 is the first CLI that authenticates with the OIDC token.
         run: npm install --global harper@^5.3
