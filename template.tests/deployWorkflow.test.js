@@ -199,7 +199,6 @@ describe('Next.js workflows build outside the deploy job', () => {
 		});
 	}
 
-	// Apart from fetching the build, the Next.js deploy job is the shared one.
 	test('the Next.js deploy job matches the shared one but for the download', () => {
 		const shared = jobBlock(readWorkflow(path.join('templates-shared', 'all')), 'deploy');
 		for (const dir of nextjsDirs) {
