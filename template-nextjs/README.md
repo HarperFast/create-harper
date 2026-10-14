@@ -56,7 +56,7 @@ Put data access in **server actions** (see [`app/actions.js`](./app/actions.js))
 
 ## Deployment
 
-Your app deploys from GitHub: every pull request runs lint, and merging to `main` deploys to your Harper cluster with the included [GitHub Actions workflow](./.github/workflows/deploy.yaml). No Harper password or token is stored in GitHub.
+Your app deploys from GitHub: every pull request runs lint and `next build`, and merging to `main` deploys to your Harper cluster with the included [GitHub Actions workflow](./.github/workflows/deploy.yaml). No Harper password or token is stored in GitHub.
 
 First, head to [https://fabric.harper.fast/](https://fabric.harper.fast/), log in, and create a cluster. Then log your local CLI in to it as a super user:
 
@@ -95,7 +95,7 @@ The deploy user can deploy any app on the cluster, so who can deploy comes down 
 
 ### What a deploy does
 
-The workflow runs `next build` and uploads the project with its `.next` build, so no build runs on the cluster (building there currently fails; see the note in [`config.yaml`](./config.yaml)). It deploys with `restart=rolling`: each node restarts in turn, so the cluster keeps serving. On Harper 5.4 and later, each node first loads the release in a canary worker, and only serves it if it loads. A release that fails to load is rejected, the run fails and names the node, and the previous release keeps serving.
+The workflow's test job runs `next build`, and the deploy job uploads the project with that `.next` build, so no build runs on the cluster (building there currently fails; see the note in [`config.yaml`](./config.yaml)). The build stays out of the deploy job, so your dependencies' install and build scripts never run where the OIDC token can be requested. It deploys with `restart=rolling`: each node restarts in turn, so the cluster keeps serving. On Harper 5.4 and later, each node first loads the release in a canary worker, and only serves it if it loads. A release that fails to load is rejected, the run fails and names the node, and the previous release keeps serving.
 
 The run's summary names the deployment and its `certification`:
 

@@ -19,6 +19,30 @@ const templateDirs = fs.readdirSync(root)
 	.filter((name) => name.startsWith('template-') && fs.existsSync(path.join(root, name, workflowPath)));
 
 /**
+ * A template's workflow with LF line endings: a Windows checkout has CRLF.
+ *
+ * @param {string} dir - The template directory, relative to the repository root.
+ * @returns {string} - The workflow's contents.
+ */
+function readWorkflow(dir) {
+	return fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8').replaceAll('\r\n', '\n');
+}
+
+/**
+ * The text of one top-level job, from its key to the next job's.
+ *
+ * @param {string} workflow - The workflow's contents.
+ * @param {string} job - The job's key.
+ * @returns {string} - That job's lines.
+ */
+function jobBlock(workflow, job) {
+	const start = workflow.indexOf(`\n  ${job}:\n`);
+	expect(start, `job ${job}`).toBeGreaterThan(-1);
+	const next = workflow.slice(start + 1).search(/\n {2}[\w-]+:\n/);
+	return next === -1 ? workflow.slice(start) : workflow.slice(start, start + 1 + next);
+}
+
+/**
  * The deploy workflows must follow the package manager that scaffolded the project. create-harper
  * installs with whichever one invoked it, so a project created by `pnpm create harper` commits
  * `pnpm-lock.yaml` — against which setup-node's npm cache cannot resolve a package lock and
@@ -53,30 +77,6 @@ describe('deploy workflows are package-manager agnostic', () => {
  * environment (`harper deploy setup=true provider=github-actions`, run as `deploy:setup-ci`).
  */
 describe('deploy workflows deploy on merge with OIDC', () => {
-	/**
-	 * A template's workflow with LF line endings: a Windows checkout has CRLF.
-	 *
-	 * @param {string} dir - The template directory.
-	 * @returns {string} - The workflow's contents.
-	 */
-	function readWorkflow(dir) {
-		return fs.readFileSync(path.join(root, dir, workflowPath), 'utf-8').replaceAll('\r\n', '\n');
-	}
-
-	/**
-	 * The text of one top-level job, from its key to the next job's.
-	 *
-	 * @param {string} workflow - The workflow's contents.
-	 * @param {string} job - The job's key.
-	 * @returns {string} - That job's lines.
-	 */
-	function jobBlock(workflow, job) {
-		const start = workflow.indexOf(`\n  ${job}:\n`);
-		expect(start, `job ${job}`).toBeGreaterThan(-1);
-		const next = workflow.slice(start + 1).search(/\n {2}[\w-]+:\n/);
-		return next === -1 ? workflow.slice(start) : workflow.slice(start, start + 1 + next);
-	}
-
 	for (const dir of templateDirs) {
 		test(`${dir} tests pull requests and deploys merges to main`, () => {
 			const workflow = readWorkflow(dir);
@@ -100,6 +100,17 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 			expect(workflow).not.toContain('secrets.');
 			// The deploy uploads the checkout, `.git` included, so the job's token must not be in it.
 			expect(jobBlock(workflow, 'deploy')).toContain('persist-credentials: false');
+		});
+
+		// Every step of a job with `id-token: write` can request the token, so a dependency's install
+		// or build script running there could trade it for the deploy user's Harper token.
+		test(`${dir} installs and builds nothing in the job that can request an identity token`, () => {
+			const deploy = jobBlock(readWorkflow(dir), 'deploy');
+
+			expect(deploy).not.toContain('# your-package-manager-setup-step-here');
+			expect(deploy).not.toContain('your-package-manager-install-here');
+			expect(deploy).not.toContain('run: your-package-manager-run-here');
+			expect(deploy.match(/npm (?:install|i|ci)\b[^\n]*/g)).toEqual(['npm install --global harper@^5.3']);
 		});
 
 		test(`${dir} deploys an explicit project and waits for the rolling job`, () => {
@@ -144,6 +155,57 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 			expect(workflow).toContain('actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0');
 		});
 	}
+});
+
+/**
+ * The Next.js templates deploy a `.next` built in CI, because building on the cluster currently fails
+ * (HarperFast/nextjs#57, #58). The test job builds it and the deploy job downloads it, so the build
+ * never runs where an identity token can be requested.
+ */
+describe('Next.js workflows build outside the deploy job', () => {
+	const nextjsDirs = templateDirs.filter((dir) => dir.startsWith('template-nextjs'));
+
+	test('finds both Next.js templates', () => {
+		expect(nextjsDirs).toEqual(['template-nextjs', 'template-nextjs-ts']);
+	});
+
+	for (const dir of nextjsDirs) {
+		test(`${dir} builds in the test job and uploads the build from main only`, () => {
+			const testJob = jobBlock(readWorkflow(dir), 'test');
+			const build = testJob.indexOf('run: your-package-manager-run-here build');
+			const upload = testJob.slice(testJob.indexOf('- name: Hand the build to the deploy job'));
+
+			expect(build).toBeGreaterThan(-1);
+			expect(build).toBeLessThan(testJob.length - upload.length);
+			expect(upload).toContain("if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'");
+			expect(upload).toContain('uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2');
+			expect(upload).toContain('name: next-build\n');
+			expect(upload).toContain('            .next/\n            !.next/cache/\n');
+			// upload-artifact skips dot-directories such as `.next` unless told otherwise.
+			expect(upload).toContain('include-hidden-files: true');
+			expect(upload).toContain('overwrite: true');
+		});
+
+		test(`${dir} deploys the build the test job uploaded`, () => {
+			const deploy = jobBlock(readWorkflow(dir), 'deploy');
+			const download = deploy.indexOf(
+				'uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2',
+			);
+
+			// The checkout cleans the workspace, so the build has to land after it.
+			expect(download).toBeGreaterThan(deploy.indexOf('uses: actions/checkout@'));
+			expect(download).toBeLessThan(deploy.indexOf('- name: Deploy\n'));
+			expect(deploy.slice(download)).toMatch(/^[^\n]+\n {8}with:\n {10}name: next-build\n {10}path: \.next\n/);
+		});
+	}
+
+	test('the Next.js deploy job matches the shared one but for the download', () => {
+		const shared = jobBlock(readWorkflow(path.join('templates-shared', 'all')), 'deploy');
+		for (const dir of nextjsDirs) {
+			const deploy = jobBlock(readWorkflow(dir), 'deploy');
+			expect(deploy.replace(/\n {6}- name: Download the build\n(?: {8}.*\n)+/, '\n')).toBe(shared);
+		}
+	});
 });
 
 /**
@@ -299,6 +361,9 @@ describe('generated deploy workflows', () => {
 		expect(workflow).toContain("cache: 'pnpm'");
 		expect(workflow).toContain('run: pnpm install --frozen-lockfile');
 		expect(workflow).toContain('run: pnpm run build');
+		const deploy = jobBlock(workflow.replaceAll('\r\n', '\n'), 'deploy');
+		expect(deploy).not.toContain('pnpm/action-setup');
+		expect(deploy).not.toContain('run: pnpm');
 
 		expect(workflow).not.toContain('npm ci');
 		expect(workflow).not.toContain('your-package-manager');
