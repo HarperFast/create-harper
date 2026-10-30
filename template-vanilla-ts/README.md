@@ -150,7 +150,7 @@ The deploy user can deploy any app on the cluster, so who can deploy comes down 
 
 ### What a deploy does
 
-The workflow uploads the checked-out project and deploys it with `restart=rolling`: each node restarts in turn, so the cluster keeps serving. On Harper 5.4 and later, the run waits for every node, and each node first loads the release in a canary worker and only serves it if it loads. A release that fails to load is rejected, the run fails and names the node, and the previous release keeps serving.
+The workflow uploads the checked-out project and deploys it with `restart=rolling`: each node restarts in turn, so the cluster keeps serving. On Harper 5.4 and later, the run waits for every node, and each node first loads the release in a canary worker and only serves it if it loads. A release that fails to load is rejected, the run fails and names the node, and the previous release keeps serving. On an older cluster, the run passes as soon as the first node has the release.
 
 The deploy step's log names the deployment and its `certification`:
 
@@ -186,9 +186,9 @@ The [preview workflow](./.github/workflows/preview.yaml) skips its jobs until yo
 your-package-manager-run-here deploy:setup-previews
 ```
 
-It refuses a workflow that could hand the preview identity to a fork or to a pull request's code. Then it creates, on the cluster, a user that can only deploy and drop this app's previews, and trust policies for the workflow's `preview` and `preview-cleanup` environments. With the [`gh` CLI](https://cli.github.com) signed in, it also sets the `HARPER_PREVIEW_TARGET` repository variable, which is what turns the jobs on; otherwise it prints the command to run. To remove it all, previews included, run `harper preview teardown app=your-component-name-here`.
+It refuses a workflow with a job that runs for forks or checks out the pull request. Then it creates, on the cluster, a user that can only deploy and drop this app's previews, and trust policies for the workflow's `preview` and `preview-cleanup` environments. With the [`gh` CLI](https://cli.github.com) signed in, it also sets the `HARPER_PREVIEW_TARGET` repository variable, which is what turns the jobs on; otherwise it prints the command to run. To remove it all, previews included, run `harper preview teardown app=your-component-name-here`.
 
-The workflow never checks out or builds a pull request. The cluster fetches the commit itself, then installs and builds it there, so anyone who can push a branch here can run code on your cluster, in an isolated worker. A preview's writes stay in its own database branch, except in the `system` database (users and roles), which can't be branched.
+The workflow never checks out or builds a pull request. The cluster fetches the commit itself, then installs and builds it there. So anyone who can push a branch here, a bot included, can run code on your cluster, and Harper doesn't sandbox an app's code. A preview's writes stay in its own database branch, except in the `system` database (users and roles), which can't be branched.
 
 - **Private repositories:** the cluster needs a credential to fetch each commit. Setup offers to seal one, and the workflow uses it whenever the repository is private.
 - **Public repositories:** the workflow runs on `pull_request_target`, which [GitHub's default protection](https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target) blocks for affected public repositories from December 2, 2026. A blocked run fails with an error, even while previews are off. To allow it, go to **Settings → Actions → Policies**, create a policy with an active enforcement status that targets `.github/workflows/preview.yaml`, and add a **Restrict events** rule that allows `pull_request_target`. If you don't want previews, delete the workflow instead.

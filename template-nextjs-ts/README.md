@@ -95,7 +95,7 @@ The deploy user can deploy any app on the cluster, so who can deploy comes down 
 
 ### What a deploy does
 
-The workflow's test job runs `next build`, and the deploy job uploads the project with that `.next` build, so no build runs on the cluster (building there currently fails; see the note in [`config.yaml`](./config.yaml)). The build stays out of the deploy job, so your dependencies' install and build scripts never run where the OIDC token can be requested. It deploys with `restart=rolling`: each node restarts in turn, so the cluster keeps serving. On Harper 5.4 and later, the run waits for every node, and each node first loads the release in a canary worker and only serves it if it loads. A release that fails to load is rejected, the run fails and names the node, and the previous release keeps serving.
+The workflow's test job runs `next build`, and the deploy job uploads the project with that `.next` build, so no build runs on the cluster (building there currently fails; see the note in [`config.yaml`](./config.yaml)). The build stays out of the deploy job, so your dependencies' install and build scripts never run where the OIDC token can be requested. It deploys with `restart=rolling`: each node restarts in turn, so the cluster keeps serving. On Harper 5.4 and later, the run waits for every node, and each node first loads the release in a canary worker and only serves it if it loads. A release that fails to load is rejected, the run fails and names the node, and the previous release keeps serving. On an older cluster, the run passes as soon as the first node has the release.
 
 The deploy step's log names the deployment and its `certification`:
 
