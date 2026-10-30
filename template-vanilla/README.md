@@ -170,7 +170,7 @@ deploys this directory the same way, as the user you logged in with. It returns 
 
 ### Pull request previews
 
-Turn these on and every pull request from a branch in this repository gets its own running copy of the app, at `https://<branch>.app.<your-cluster-host>/`, with its own branch of your databases. A comment on the pull request links to it. Each push updates it, and closing the pull request removes it; a preview that misses that expires after seven days.
+Turn these on and every pull request into `main` from a branch in this repository gets its own running copy of the app, at `https://<branch>.app.<your-cluster-host>/`, with its own branch of your databases. A comment on the pull request links to it. Each push updates it, and closing the pull request removes it; a preview that misses that expires after seven days.
 
 The [preview workflow](./.github/workflows/preview.yaml) skips its jobs until you turn previews on. That takes Harper 5.4 or later on the cluster and on your machine. Run this once from the project, signed in as a super user:
 

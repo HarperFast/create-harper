@@ -118,6 +118,7 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 			expect(step).toContain('uses: HarperFast/deploy-action@v1');
 			expect(step).toContain('target: ${{ env.HARPER_CLI_TARGET }}');
 			expect(step).toContain('app: your-component-name-here');
+			expect(step).toContain('restart: rolling');
 			// A payload, not a reference: a Next.js commit has no `.next`, and a private repository
 			// would need a credential on the cluster.
 			expect(step).not.toContain('by_ref');
