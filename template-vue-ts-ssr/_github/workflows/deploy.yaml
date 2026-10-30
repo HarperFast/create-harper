@@ -73,3 +73,4 @@ jobs:
         with:
           target: ${{ env.HARPER_CLI_TARGET }}
           app: your-component-name-here
+          restart: rolling
