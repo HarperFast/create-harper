@@ -76,7 +76,7 @@ You can use `.` for the project name to scaffold in the current directory.
 
 Every project comes with a GitHub Actions workflow that tests pull requests and deploys to your [Harper Fabric](https://fabric.harper.fast/) cluster when a change merges to `main`. It stores no Harper credential: the deploy job authenticates with GitHub's OIDC identity token, which the cluster accepts under a trust policy.
 
-After you push the new project to GitHub, set that up once from the project, signed in to the cluster as a super user with `harper login` (Harper 5.4 or later):
+After you push the new project to GitHub, set that up once from the project, signed in to the cluster as a super user with `harper login`, using the Harper 5.4 CLI or later:
 
 ```bash
 npm run deploy:setup-ci

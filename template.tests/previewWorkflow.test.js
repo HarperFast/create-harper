@@ -6,15 +6,13 @@ import * as YAML from 'yaml';
 import { scaffoldProject } from '../lib/steps/scaffoldProject.js';
 import { checkPreviewWorkflowFile, checkWorkflowFile } from './harper/workflowChecks.ts';
 
-// Scaffolding narrates every file it writes; these tests care about the files.
 vi.mock('@clack/prompts');
 
 const root = path.resolve(import.meta.dirname, '..');
 const deployWorkflowPath = path.join('_github', 'workflows', 'deploy.yaml');
 const previewWorkflowPath = path.join('_github', 'workflows', 'preview.yaml');
 
-// The templates Harper can preview by reference: the cluster fetches the commit, then installs and
-// builds it. A Next.js commit has no `.next`, and building on the cluster fails (HarperFast/nextjs#57, #58).
+// A Next.js commit has no `.next`, and building on the cluster fails (HarperFast/nextjs#57, #58).
 const templates = fs.readdirSync(root)
 	.filter((name) => name.startsWith('template-') && fs.existsSync(path.join(root, name, deployWorkflowPath)))
 	.map((name) => name.slice('template-'.length));
@@ -95,7 +93,6 @@ describe('scaffolded preview workflows', () => {
 		});
 	}
 
-	// If these don't fail, passing the checks above says nothing.
 	describe('harper refuses a workflow that gives way', () => {
 		const sameRepository = ' && github.event.pull_request.head.repo.full_name == github.repository';
 
