@@ -1,6 +1,6 @@
 # Tests every pull request, and deploys to your Harper cluster when a change merges to `main`. The
-# deploy job holds no Harper credential: its `harper` commands authenticate with GitHub's OIDC token
-# under a trust policy on the cluster. Set that up once with
+# deploy job holds no Harper credential: HarperFast/deploy-action authenticates with GitHub's OIDC
+# token under a trust policy on the cluster. Set that up once with
 # `your-package-manager-run-here deploy:setup-ci` (see "Deployment" in the README). The test job
 # runs `next build` and hands it to the deploy job, which uploads it, because building on the cluster
 # currently fails (HarperFast/nextjs#57, HarperFast/nextjs#58).
@@ -82,52 +82,13 @@ jobs:
         with:
           name: next-build
           path: .next
-      - name: Set up Node.js
-        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-        with:
-          node-version-file: '.nvmrc'
-      - name: Install Harper CLI
-        # 5.3 is the first CLI that authenticates with the OIDC token.
-        run: npm install --global harper@^5.3
-      - name: Deploy
+      - name: Check the deploy target
+        # The action refuses an empty target too, but can't say which script sets it.
         run: |
-          # With no target the CLI would fall back to a saved login or a local node, and succeed.
           [ -n "$HARPER_CLI_TARGET" ] || { echo "::error::Set the HARPER_CLI_TARGET repository variable: run your-package-manager-run-here deploy:setup-ci"; exit 1; }
-          harper deploy project=your-component-name-here restart=rolling json=true > "$RUNNER_TEMP/deploy.json"
-      - name: Wait for every node to take the release
-        # The deploy returns once the node it reached has the release; the others take it in a job.
-        run: |
-          JOB_ID=$(jq -r '.restartJobId // empty' "$RUNNER_TEMP/deploy.json")
-          [ -n "$JOB_ID" ] || { echo "::error::The rolling deploy returned no restartJobId"; exit 1; }
-          LAST="could not be read"
-          for attempt in $(seq 60); do
-            sleep 10
-            harper get_job id="$JOB_ID" json=true > "$RUNNER_TEMP/job.json" || continue
-            case $(jq -r '.[0].status // "MISSING"' "$RUNNER_TEMP/job.json") in
-              COMPLETE) exit 0 ;;
-              ERROR) jq -r '.[0].message' "$RUNNER_TEMP/job.json"; exit 1 ;;
-              MISSING) LAST="was not on the node that answered; its outcome is unknown" ;;
-              *) LAST="was still running" ;;
-            esac
-          done
-          echo "::error::After 60 polls, job $JOB_ID $LAST"
-          exit 1
-      - name: Summarize
-        if: ${{ !cancelled() }}
-        env:
-          JOB_STATUS: ${{ job.status }}
-        run: |
-          [ -s "$RUNNER_TEMP/deploy.json" ] || exit 0
-          {
-            if [ "$JOB_STATUS" = success ]; then
-              echo "### Deployed your-component-name-here"
-            elif jq -e '.deployment_id' "$RUNNER_TEMP/deploy.json" > /dev/null; then
-              echo "### Deploy of your-component-name-here did not complete on every node"
-            else
-              echo "### Deploy of your-component-name-here failed"
-            fi
-            jq -r '"- Deployment: `\(.deployment_id // "unknown")`\n- Certification: `\(.certification // "not reported")`"' "$RUNNER_TEMP/deploy.json"
-            echo ""
-            echo "To go back to an earlier release, list them with \`harper list_deployments project=your-component-name-here\`,"
-            echo "then activate one with \`harper deploy project=your-component-name-here deployment_id=DEPLOYMENT_ID restart=rolling\`."
-          } >> "$GITHUB_STEP_SUMMARY"
+      - name: Deploy
+        # From Harper 5.4 this waits for every node, and fails the run if a node's canary rejects the release.
+        uses: HarperFast/deploy-action@v1
+        with:
+          target: ${{ env.HARPER_CLI_TARGET }}
+          app: your-component-name-here

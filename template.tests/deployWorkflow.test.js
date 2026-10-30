@@ -63,8 +63,6 @@ describe('deploy workflows are package-manager agnostic', () => {
 
 			expect(workflow).not.toContain('npm ci');
 			expect(workflow).not.toMatch(/cache: '/);
-			// `npm install -g harper` stays npm on purpose — it is a global tool, and npm always
-			// comes with the Node.js the workflow sets up. Running a package.json script must not.
 			expect(workflow).not.toContain('npm run');
 			expect(workflow).not.toContain('npm test');
 		});
@@ -110,22 +108,29 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 			expect(deploy).not.toContain('# your-package-manager-setup-step-here');
 			expect(deploy).not.toContain('your-package-manager-install-here');
 			expect(deploy).not.toContain('run: your-package-manager-run-here');
-			expect(deploy.match(/npm (?:install|i|ci)\b[^\n]*/g)).toEqual(['npm install --global harper@^5.3']);
+			expect(deploy).not.toMatch(/npm (?:install|i|ci)\b/);
 		});
 
-		test(`${dir} deploys an explicit project and waits for the rolling job`, () => {
+		test(`${dir} deploys an explicit project with the action`, () => {
 			const deploy = jobBlock(readWorkflow(dir), 'deploy');
+			const step = deploy.slice(deploy.indexOf('- name: Deploy\n'));
 
-			expect(deploy).toContain('[ -n "$HARPER_CLI_TARGET" ] ||');
-			expect(deploy).toContain(
-				'harper deploy project=your-component-name-here restart=rolling json=true > "$RUNNER_TEMP/deploy.json"',
-			);
-			expect(deploy).toContain('npm install --global harper@^5.3');
-			// A rolling deploy with no job id must fail, not pass unverified.
-			expect(deploy).toContain(
-				'[ -n "$JOB_ID" ] || { echo "::error::The rolling deploy returned no restartJobId"; exit 1; }',
-			);
-			expect(deploy).toContain('harper get_job id="$JOB_ID" json=true > "$RUNNER_TEMP/job.json" || continue');
+			expect(step).toContain('uses: HarperFast/deploy-action@v1');
+			expect(step).toContain('target: ${{ env.HARPER_CLI_TARGET }}');
+			expect(step).toContain('app: your-component-name-here');
+			// A payload, not a reference: a Next.js commit has no `.next`, and a private repository
+			// would need a credential on the cluster.
+			expect(step).not.toContain('by_ref');
+			expect(deploy).not.toContain('harper deploy');
+		});
+
+		test(`${dir} says which script sets a missing target, before the action refuses it`, () => {
+			const deploy = jobBlock(readWorkflow(dir), 'deploy');
+			const check = deploy.indexOf('[ -n "$HARPER_CLI_TARGET" ] ||');
+
+			expect(check).toBeGreaterThan(-1);
+			expect(check).toBeLessThan(deploy.indexOf('- name: Deploy\n'));
+			expect(deploy).toContain('run your-package-manager-run-here deploy:setup-ci');
 		});
 
 		test(`${dir} runs one at a time per branch, so an older commit can't deploy last`, () => {
@@ -268,8 +273,6 @@ describe('generated deploy workflows', () => {
 
 		expect(workflow).not.toContain('npm ci');
 		expect(workflow).not.toContain("cache: 'npm'");
-		// The Harper CLI is the one deliberate npm holdout.
-		expect(workflow).toContain('run: npm install --global harper@');
 
 		// No placeholder may survive into a scaffolded project.
 		expect(workflow).not.toContain('your-package-manager');
@@ -325,7 +328,7 @@ describe('generated deploy workflows', () => {
 		const workflow = fs.readFileSync(path.join(target, '.github', 'workflows', 'deploy.yaml'), 'utf-8');
 		const pkgJson = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf-8'));
 
-		expect(workflow).toContain('harper deploy project=my-app-printf-X restart=rolling');
+		expect(workflow).toContain('app: my-app-printf-X\n');
 		expect(workflow).not.toContain('; printf X');
 		expect(pkgJson.scripts.deploy).toBe('harper deploy project=my-app-printf-X restart=rolling');
 		expect(pkgJson.scripts['deploy:setup-ci']).toBe(
@@ -356,7 +359,7 @@ describe('generated deploy workflows', () => {
 	test('the standalone Next.js workflow follows the package manager too', () => {
 		const workflow = scaffoldFor('nextjs', 'pnpm', '11.17.0');
 
-		expect(workflow).toContain('harper deploy project=nextjs-pnpm restart=rolling');
+		expect(workflow).toContain('app: nextjs-pnpm\n');
 		expect(workflow).toContain('- name: Set up pnpm');
 		expect(workflow).toContain("cache: 'pnpm'");
 		expect(workflow).toContain('run: pnpm install --frozen-lockfile');
