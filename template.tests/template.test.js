@@ -98,6 +98,9 @@ describe('Integration tests', () => {
 			expect(pkgJson.scripts['deploy:setup-ci']).toBe(
 				`harper deploy setup=true provider=github-actions project=${projectName}`,
 			);
+			expect(pkgJson.scripts['deploy:setup-previews']).toBe(
+				BUILD_BEFORE_DEPLOY_TEMPLATES.has(template) ? undefined : `harper preview setup app=${projectName}`,
+			);
 			// Payload deploys need no clone credential; a private npm registry is set up by hand.
 			expect(pkgJson.scripts['deploy:setup']).toBeUndefined();
 
