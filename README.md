@@ -76,7 +76,7 @@ You can use `.` for the project name to scaffold in the current directory.
 
 Every project comes with a GitHub Actions workflow that tests pull requests and deploys to your [Harper Fabric](https://fabric.harper.fast/) cluster when a change merges to `main`. It stores no Harper credential: the deploy job authenticates with GitHub's OIDC identity token, which the cluster accepts under a trust policy.
 
-After you push the new project to GitHub, set that up once from the project, signed in to the cluster as a super user with `harper login` (Harper 5.4 or later):
+After you push the new project to GitHub, set that up once from the project, signed in to the cluster as a super user with `harper login`, using the Harper 5.4 CLI or later:
 
 ```bash
 npm run deploy:setup-ci
@@ -84,7 +84,15 @@ npm run deploy:setup-ci
 
 It creates a deploy-only user and the trust policy on the cluster, and sets the workflow's `HARPER_CLI_TARGET` repository variable. Each project's README covers the rest: going back to an earlier release, staging a release, and what to do when a run is refused.
 
-Projects created before this deploy on version tags with a stored `HARPER_CLI_REFRESH_TOKEN`. To move one over, scaffold a new project with the same name, template and package manager, copy its `.github/workflows/deploy.yaml` over yours, run `harper deploy setup=true provider=github-actions project=<the workflow's project= value>`, push, and then delete the old secret.
+Most templates can also give each pull request its own preview on the cluster, which takes Harper 5.4 or later there and on your machine. The workflow does nothing until you turn it on, once, with:
+
+```bash
+npm run deploy:setup-previews
+```
+
+It runs on `pull_request_target`, which GitHub's default protection blocks for affected public repositories from December 2, 2026, so a public repository must allow that event; the project's README says how. The `nextjs` and `nextjs-ts` templates don't have previews yet, because a preview deploys a commit, which has no `.next` build in it.
+
+Projects created before this deploy on version tags with a stored `HARPER_CLI_REFRESH_TOKEN`. To move one over, scaffold a new project with the same name, template and package manager, copy its `.github/workflows/deploy.yaml` over yours, run `harper deploy setup=true provider=github-actions project=<the workflow's app: value>`, push, and then delete the old secret.
 
 ## Auto-updates
 

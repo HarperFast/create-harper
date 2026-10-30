@@ -1,0 +1,54 @@
+# Gives each pull request its own copy of the app on your Harper cluster, and removes it when the
+# pull request closes. Both jobs stay skipped until you turn previews on, once, with
+# `your-package-manager-run-here deploy:setup-previews` (see "Pull request previews" in the README).
+#
+# `pull_request_target` runs this file as it is on the default branch, so a pull request can't change
+# what runs with the preview identity. Keep it that way: never check out or build the pull request
+# here. The cluster fetches the commit itself, and the pull request's code runs there.
+name: Preview
+on:
+  pull_request_target:
+    types: [opened, reopened, synchronize, closed]
+    branches: [main]
+
+permissions: {}
+
+jobs:
+  deploy:
+    # The head repository is in no claim of the identity token, so this is what keeps forks out.
+    if: vars.HARPER_PREVIEW_TARGET != '' && github.event.action != 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: preview
+    permissions:
+      id-token: write
+      pull-requests: write
+      deployments: write
+    concurrency:
+      group: harper-preview-${{ github.event.pull_request.number }}
+    steps:
+      - name: Deploy the preview
+        uses: HarperFast/deploy-action@v1
+        with:
+          target: ${{ vars.HARPER_PREVIEW_TARGET }}
+          app: your-component-name-here
+          preview: true
+          # A private repository's commit takes the credential `deploy:setup-previews` offers to seal.
+          credential: ${{ github.event.repository.private }}
+
+  cleanup:
+    # Not in the deploy job's environment or concurrency group, so its required reviewers, or a deploy
+    # waiting for them, can't hold up removing a preview.
+    if: vars.HARPER_PREVIEW_TARGET != '' && github.event.action == 'closed' && github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    environment: preview-cleanup
+    permissions:
+      id-token: write
+      pull-requests: write
+      deployments: write
+    steps:
+      - name: Remove the preview
+        uses: HarperFast/deploy-action@v1
+        with:
+          target: ${{ vars.HARPER_PREVIEW_TARGET }}
+          app: your-component-name-here
+          preview: true
