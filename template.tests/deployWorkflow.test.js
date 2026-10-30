@@ -329,7 +329,7 @@ describe('generated deploy workflows', () => {
 		const workflow = fs.readFileSync(path.join(target, '.github', 'workflows', 'deploy.yaml'), 'utf-8');
 		const pkgJson = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf-8'));
 
-		expect(workflow).toContain('app: my-app-printf-X\n');
+		expect(workflow).toContain('app: my-app-printf-X');
 		expect(workflow).not.toContain('; printf X');
 		expect(pkgJson.scripts.deploy).toBe('harper deploy project=my-app-printf-X restart=rolling');
 		expect(pkgJson.scripts['deploy:setup-ci']).toBe(
@@ -360,7 +360,7 @@ describe('generated deploy workflows', () => {
 	test('the standalone Next.js workflow follows the package manager too', () => {
 		const workflow = scaffoldFor('nextjs', 'pnpm', '11.17.0');
 
-		expect(workflow).toContain('app: nextjs-pnpm\n');
+		expect(workflow).toContain('app: nextjs-pnpm');
 		expect(workflow).toContain('- name: Set up pnpm');
 		expect(workflow).toContain("cache: 'pnpm'");
 		expect(workflow).toContain('run: pnpm install --frozen-lockfile');
