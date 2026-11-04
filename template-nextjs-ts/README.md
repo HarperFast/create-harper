@@ -66,13 +66,13 @@ harper login
 
 ### How the workflow authenticates
 
-The workflow runs plain `harper` commands, such as `harper deploy`, with no credentials on them. Each one authenticates by itself, because:
+The workflow deploys with [`HarperFast/deploy-action`](https://github.com/HarperFast/deploy-action), which runs the `harper` CLI with no credentials on it. The CLI authenticates by itself, because:
 
 - the deploy job has `permissions: id-token: write`, so the CLI can ask GitHub for an identity token for the run;
-- `HARPER_CLI_TARGET` is set to your cluster's URL, so the CLI asks for a token addressed to that cluster;
+- the `HARPER_CLI_TARGET` repository variable holds your cluster's URL, so the CLI asks for a token addressed to that cluster;
 - the cluster holds a **trust policy** that accepts tokens from this repository's `deploy.yaml`, on `main`, in the `production` environment, and lets them act as a deploy-only user.
 
-The CLI trades the token for a one-hour Harper token, and the run prints which policy it used, like `Authenticated as 'my-app-ci-deploy' via OIDC trust policy 'github-actions-my-app'`. Every `harper` command in that job works the same way, so you can add more steps without adding credentials.
+The CLI trades the token for a one-hour Harper token, and the run prints which policy it used, like `Authenticated as 'my-app-ci-deploy' via OIDC trust policy 'github-actions-my-app'`. Install the CLI in that job and any `harper` command you add works the same way, without adding credentials.
 
 ### One-time setup
 
@@ -84,7 +84,7 @@ your-package-manager-run-here deploy:setup-ci
 
 It creates, on the cluster:
 
-- a role that can run only `deploy_component`, `get_job` (to wait for the rollout) and `registration_info` (the CLI's version check), and a user in it;
+- a role that can run only `deploy_component`, `get_deployment` and `get_job` (to follow the rollout) and `registration_info` (the CLI's version check), and a user in it;
 - the trust policy, checked against your `.github/workflows/deploy.yaml` so it matches what a run will present.
 
 With the [`gh` CLI](https://cli.github.com) signed in, it also sets the `HARPER_CLI_TARGET` repository variable; otherwise it prints the command to run. Running it again changes nothing. If something on the cluster already exists and differs, it stops and says what, without changing anything.
@@ -95,9 +95,9 @@ The deploy user can deploy any app on the cluster, so who can deploy comes down 
 
 ### What a deploy does
 
-The workflow's test job runs `next build`, and the deploy job uploads the project with that `.next` build, so no build runs on the cluster (building there currently fails; see the note in [`config.yaml`](./config.yaml)). The build stays out of the deploy job, so your dependencies' install and build scripts never run where the OIDC token can be requested. It deploys with `restart=rolling`: each node restarts in turn, so the cluster keeps serving. On Harper 5.4 and later, each node first loads the release in a canary worker, and only serves it if it loads. A release that fails to load is rejected, the run fails and names the node, and the previous release keeps serving.
+The workflow's test job runs `next build`, and the deploy job uploads the project with that `.next` build, so no build runs on the cluster (building there currently fails; see the note in [`config.yaml`](./config.yaml)). The build stays out of the deploy job, so your dependencies' install and build scripts never run where the OIDC token can be requested. It deploys with `restart=rolling`: each node restarts in turn, so the cluster keeps serving. On Harper 5.4 and later, the run waits for every node, and each node first loads the release in a canary worker and only serves it if it loads. A release that fails to load is rejected, the run fails and names the node, and the previous release keeps serving. On an older cluster, the run passes as soon as the first node has the release.
 
-The run's summary names the deployment and its `certification`:
+The deploy step's log names the deployment and its `certification`:
 
 - `certified`: the canary loaded the release.
 - `uncertified` or `unavailable`: the release went out without that check, for a reason the [deploy reference](https://docs.harperdb.io/reference/v5/operations-api/operations#certifying-a-release-in-a-canary-worker) lists.
@@ -121,6 +121,10 @@ your-package-manager-run-here deploy
 
 builds and deploys this directory the same way, as the user you logged in with. It returns once the first node has the release; the response's `restartJobId` is the job that takes it to the others, which `harper get_job id=<restartJobId>` reports on.
 
+### Pull request previews
+
+This template doesn't have pull request previews yet. A preview has the cluster fetch the pull request's commit, which has no `.next` build in it, and building on the cluster currently fails (see the note in [`config.yaml`](./config.yaml)). Don't run `harper preview setup` on this project: a preview deployed that way reports success and then serves nothing.
+
 ### When a run is refused
 
 If the deploy step fails with a 401, the cluster did not accept the run's token. `harper list_oidc_trust` shows each policy, and an `invalid_reason` when one can't match; the cluster's `oidc-trust` log says which check failed. Rerunning `your-package-manager-run-here deploy:setup-ci` reports a policy that no longer matches the workflow.
@@ -130,7 +134,7 @@ If the deploy step fails with a 401, the cluster did not accept the run's token.
 Projects created before this deployed on version tags with a `HARPER_CLI_REFRESH_TOKEN` secret, and don't have this workflow or the `deploy:setup-ci` script. To move one over:
 
 1. Scaffold a new project with the same name and template, using the package manager your project uses (for example `pnpm create harper`), and copy its `.github/workflows/deploy.yaml` over yours.
-2. Run the setup from the project, with the `project=` value the copied workflow passes to `harper deploy`: `harper deploy setup=true provider=github-actions project=<that value>`.
+2. Run the setup from the project, with the `app:` value the copied workflow passes to the deploy action: `harper deploy setup=true provider=github-actions project=<that value>`.
 3. Push the new workflow to `main`.
 4. Once nothing references it, delete the `HARPER_CLI_REFRESH_TOKEN` secret under **Settings → Secrets and variables → Actions**. The new workflow doesn't read it, so it is only a credential left lying around.
 
