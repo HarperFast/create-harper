@@ -151,7 +151,7 @@ describe('scaffolded preview workflows', () => {
 	test('each job is the action and nothing else', () => {
 		for (const job of Object.values(YAML.parse(workflow).jobs)) {
 			expect(job.steps).toHaveLength(1);
-			expect(job.steps[0].uses).toBe('HarperFast/deploy-action@v1');
+			expect(job.steps[0].uses).toBe('HarperFast/deploy-action@45fa59b6157eabb72b7a74922309238671f2a37d');
 			expect(job.steps[0].with).toMatchObject({
 				target: '${{ vars.HARPER_PREVIEW_TARGET }}',
 				preview: true,

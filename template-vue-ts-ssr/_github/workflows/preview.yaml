@@ -27,7 +27,7 @@ jobs:
       group: harper-preview-${{ github.event.pull_request.number }}
     steps:
       - name: Deploy the preview
-        uses: HarperFast/deploy-action@v1
+        uses: HarperFast/deploy-action@45fa59b6157eabb72b7a74922309238671f2a37d # v1.0.0
         with:
           target: ${{ vars.HARPER_PREVIEW_TARGET }}
           app: your-component-name-here
@@ -47,7 +47,7 @@ jobs:
       deployments: write
     steps:
       - name: Remove the preview
-        uses: HarperFast/deploy-action@v1
+        uses: HarperFast/deploy-action@45fa59b6157eabb72b7a74922309238671f2a37d # v1.0.0
         with:
           target: ${{ vars.HARPER_PREVIEW_TARGET }}
           app: your-component-name-here

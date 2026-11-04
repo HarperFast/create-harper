@@ -115,7 +115,7 @@ describe('deploy workflows deploy on merge with OIDC', () => {
 			const deploy = jobBlock(readWorkflow(dir), 'deploy');
 			const step = deploy.slice(deploy.indexOf('- name: Deploy\n'));
 
-			expect(step).toContain('uses: HarperFast/deploy-action@v1');
+			expect(step).toContain('uses: HarperFast/deploy-action@45fa59b6157eabb72b7a74922309238671f2a37d # v1.0.0');
 			expect(step).toContain('target: ${{ env.HARPER_CLI_TARGET }}');
 			expect(step).toContain('app: your-component-name-here');
 			expect(step).toContain('restart: rolling');
