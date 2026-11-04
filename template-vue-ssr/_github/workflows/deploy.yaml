@@ -69,7 +69,7 @@ jobs:
           [ -n "$HARPER_CLI_TARGET" ] || { echo "::error::Set the HARPER_CLI_TARGET repository variable: run your-package-manager-run-here deploy:setup-ci"; exit 1; }
       - name: Deploy
         # From Harper 5.4 this waits for every node, and fails the run if a node's canary rejects the release.
-        uses: HarperFast/deploy-action@v1
+        uses: HarperFast/deploy-action@45fa59b6157eabb72b7a74922309238671f2a37d # v1.0.0
         with:
           target: ${{ env.HARPER_CLI_TARGET }}
           app: your-component-name-here
