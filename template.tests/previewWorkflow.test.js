@@ -26,6 +26,16 @@ const packageManagers = [['npm', '10.9.0'], ['pnpm', '11.17.0'], ['yarn', '4.9.1
 // `harper preview setup`'s defaults, which its trust policies pin.
 const check = (workflow) => checkPreviewWorkflowFile(workflow, 'main', 'preview', 'preview-cleanup');
 const clean = { problems: [], unverified: [], unsafe: [] };
+// Setup prints this as a note and carries on. Harper can't tell that the cleanup job runs on close once
+// setup has set the variable its condition names: every term but the closed and same-repository ones is
+// unreadable to it.
+const passes = {
+	...clean,
+	unverified: [
+		'that job "cleanup" runs when a pull request closes, which is what drops its preview before it expires',
+	],
+};
+const previewGate = "vars.HARPER_PREVIEW_TARGET != '' && ";
 
 /**
  * A workflow as a scaffolded project holds it, with LF line endings: a Windows checkout has CRLF.
@@ -75,7 +85,7 @@ describe('scaffolded preview workflows', () => {
 				const project = scaffold(template, agent, version);
 				const preview = readWorkflow(project, 'preview.yaml');
 
-				expect(check(preview)).toEqual(clean);
+				expect(check(preview)).toEqual(passes);
 				expect(checkWorkflowFile(readWorkflow(project, 'deploy.yaml'), 'main', 'production')).toEqual({
 					problems: [],
 					unverified: [],
@@ -92,6 +102,11 @@ describe('scaffolded preview workflows', () => {
 			expect(pkgJson.scripts['deploy:setup-previews']).toBe(`harper preview setup app=${template}-npm`);
 		});
 	}
+
+	test("leaves only the previews gate unverified, which setup's own variable satisfies", () => {
+		expect(workflow.split(previewGate)).toHaveLength(3);
+		expect(check(workflow.replaceAll(previewGate, ''))).toEqual(clean);
+	});
 
 	describe('harper refuses a workflow that gives way', () => {
 		const sameRepository = ' && github.event.pull_request.head.repo.full_name == github.repository';
