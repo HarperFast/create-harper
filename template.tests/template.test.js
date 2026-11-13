@@ -12,6 +12,10 @@ const tempDir = path.resolve(root, '.temp-integration-tests');
 // can't silently skip a build it needs: it fails the assertions below until it's added here.
 const BUILD_BEFORE_DEPLOY_TEMPLATES = new Set(['nextjs', 'nextjs-ts']);
 
+// Templates that don't receive the shared AGENTS.md / CLAUDE.md yet: the Next.js templates are not in the
+// `templates-shared` fan-out (see applySharedTemplates.js). Explicit so a new template can't skip them silently.
+const WITHOUT_AGENT_INSTRUCTIONS_TEMPLATES = new Set(['nextjs', 'nextjs-ts']);
+
 describe('Integration tests', () => {
 	beforeAll(() => {
 		if (fs.existsSync(tempDir)) {
@@ -88,6 +92,13 @@ describe('Integration tests', () => {
 
 			if (fs.existsSync(path.join(templateDir, '_env.example'))) {
 				expect(fs.existsSync(path.join(targetDir, '.env.example'))).toBe(true);
+			}
+
+			// Agent instructions ship at the project root, un-renamed.
+			if (!WITHOUT_AGENT_INSTRUCTIONS_TEMPLATES.has(template)) {
+				const agentsMd = fs.readFileSync(path.join(targetDir, 'AGENTS.md'), 'utf-8');
+				expect(agentsMd).toContain('.agents/skills/harper-architecture/SKILL.md');
+				expect(fs.readFileSync(path.join(targetDir, 'CLAUDE.md'), 'utf-8').trim()).toBe('@AGENTS.md');
 			}
 
 			// The deploy workflow must live under `.github/workflows/` (plural — GitHub only runs
