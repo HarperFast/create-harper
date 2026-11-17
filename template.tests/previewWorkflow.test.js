@@ -39,7 +39,8 @@ function readWorkflow(project, file) {
 	return fs.readFileSync(path.join(project, '.github', 'workflows', file), 'utf-8').replaceAll('\r\n', '\n');
 }
 
-describe('scaffolded preview workflows', () => {
+// Each test writes a whole project to disk, which a Windows runner has stalled for over 5s.
+describe('scaffolded preview workflows', { timeout: 30_000 }, () => {
 	/** @type {string} */
 	let tempDir;
 	/** @type {string} */
