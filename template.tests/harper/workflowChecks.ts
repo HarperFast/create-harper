@@ -1,10 +1,12 @@
 // dprint-ignore-file
 // Harper's own checks of the scaffolded workflows, copied verbatim from
-// HarperFast/harper@e58d105ee3f630f4a8b616e0ca811545f01c8582 bin/deploySetupGithubActions.ts
-// (WorkflowCheck through checkPreviewWorkflowFile). No published release has
-// checkPreviewWorkflowFile yet: replace this copy with an import once 5.4.0 is on npm. Until then,
-// refresh it from the same lines of a newer commit.
+// HarperFast/harper@v5.4.1 (8aca485cac3e4c23e460c7e73c6e819dd36a3a6c) bin/deploySetupGithubActions.ts
+// (WorkflowCheck through checkPreviewWorkflowFile), with PREVIEW_TARGET_VARIABLE from
+// utility/previewIdentity.ts. Harper's package `exports` only its main entry point, so these have no
+// supported import path: when a release changes them, refresh this copy from the same lines of it.
 import * as YAML from 'yaml';
+
+const PREVIEW_TARGET_VARIABLE = 'HARPER_PREVIEW_TARGET';
 
 export interface WorkflowCheck {
 	problems: string[];
@@ -279,6 +281,13 @@ function checkSameRepositoryCondition(
 
 const ACTION_IS_CLOSED = /^(?:github\.event\.action\s*==\s*'closed'|'closed'\s*==\s*github\.event\.action)$/i;
 const ACTION_IS_NOT_CLOSED = /^(?:github\.event\.action\s*!=\s*'closed'|'closed'\s*!=\s*github\.event\.action)$/i;
+/**
+ * True on every run once setup has finished, since setup ends only with this variable set to the cluster's target. A
+ * workflow, like create-harper's, can test it to stay dormant until then.
+ */
+const TARGET_VARIABLE_IS_SET = new RegExp(
+	`^(?:vars\\.${PREVIEW_TARGET_VARIABLE}(?:\\s*!=\\s*'')?|''\\s*!=\\s*vars\\.${PREVIEW_TARGET_VARIABLE})$`
+);
 
 /** Undefined when a condition says more than that the job runs for a closed same-repository pull request. */
 function runsOnClose(name: string, jobs: Record<string, any>, path = new Set<string>()): boolean | undefined {
@@ -287,7 +296,9 @@ function runsOnClose(name: string, jobs: Record<string, any>, path = new Set<str
 	if (condition) {
 		const terms = conjuncts(withoutEnclosingParentheses(condition));
 		if (terms?.some((term) => ACTION_IS_NOT_CLOSED.test(term))) return false;
-		if (!terms?.every((term) => ACTION_IS_CLOSED.test(term) || SAME_REPOSITORY_TERM.test(term))) return undefined;
+		const readable = (term: string) =>
+			ACTION_IS_CLOSED.test(term) || SAME_REPOSITORY_TERM.test(term) || TARGET_VARIABLE_IS_SET.test(term);
+		if (!terms?.every(readable)) return undefined;
 	}
 	// With no status function in the condition, a needed job that is skipped skips this one.
 	let runs: boolean | undefined = true;
