@@ -180,18 +180,25 @@ deploys this directory the same way, as the user you logged in with. It returns 
 
 Turn these on and every pull request into `main` from a branch in this repository gets its own running copy of the app, at `https://<branch>.app.<your-cluster-host>/`, with its own branch of your databases. A comment on the pull request links to it. Each push updates it, and closing the pull request removes it; a preview that misses that expires after seven days.
 
-The [preview workflow](./.github/workflows/preview.yaml) skips its jobs until you turn previews on. That takes Harper 5.4 or later on the cluster and on your machine. Run this once from the project, signed in as a super user:
+The [preview workflow](./.github/previews/preview.yaml) waits in `.github/previews/` until you turn previews on, because GitHub runs every workflow in `.github/workflows/`. Previews take Harper 5.4 or later on the cluster and on your machine. To turn them on:
 
-```sh
-your-package-manager-run-here deploy:setup-previews
-```
+1. In **Settings → Environments**, create `preview` and `preview-cleanup`, and on each set **Deployment branches and tags** to `main` only. GitHub creates an environment a workflow names with no rules at all, so do this before the first pull request. A private repository needs GitHub Pro, Team or Enterprise for environments.
+2. Run this once from the project, signed in as a super user:
 
-It refuses a workflow with a job that runs for forks or checks out the pull request. Then it creates, on the cluster, a user that can only deploy and drop this app's previews, and trust policies for the workflow's `preview` and `preview-cleanup` environments. With the [`gh` CLI](https://cli.github.com) signed in, it also sets the `HARPER_PREVIEW_TARGET` repository variable, which is what turns the jobs on; otherwise it prints the command to run. To remove it all, previews included, run `harper preview teardown app=your-component-name-here`.
+   ```sh
+   your-package-manager-run-here deploy:setup-previews
+   ```
+
+   It copies the workflow to `.github/workflows/preview.yaml`, unless a file is already there, and runs `harper preview setup`. That refuses a workflow with a job that runs for forks or checks out the pull request. Then it creates, on the cluster, a user that can only deploy and drop this app's previews, and trust policies for the workflow's `preview` and `preview-cleanup` environments. With the [`gh` CLI](https://cli.github.com) signed in, it also sets the `HARPER_PREVIEW_TARGET` repository variable, which is what turns the jobs on; otherwise it prints the command to run.
+3. In a public repository, allow `pull_request_target` for the workflow, as described below.
+4. Commit `.github/workflows/preview.yaml` to `main`. `pull_request_target` runs the workflow as it is on `main`, so previews start once it is there.
+
+To remove it all, previews included, run `harper preview teardown app=your-component-name-here`, then delete `.github/workflows/preview.yaml` from `main`.
 
 The workflow never checks out or builds a pull request. The cluster fetches the commit itself, then installs and builds it there. So anyone who can push a branch here, a bot included, can run code on your cluster, and Harper doesn't sandbox an app's code. A preview's writes stay in its own database branch, except in the `system` database (users and roles), which can't be branched.
 
 - **Private repositories:** the cluster needs a credential to fetch each commit. Setup offers to seal one, and the workflow uses it whenever the repository is private.
-- **Public repositories:** the workflow runs on `pull_request_target`, which [GitHub's default protection](https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target) blocks for affected public repositories from December 2, 2026. A blocked run fails with an error, even while previews are off. To allow it, go to **Settings → Actions → Policies**, create a policy with an active enforcement status that targets `.github/workflows/preview.yaml`, and add a **Restrict events** rule that allows `pull_request_target`. If you don't want previews, delete the workflow instead.
+- **Public repositories:** the workflow runs on `pull_request_target`, which [GitHub's default protection](https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target) blocks in public repositories from December 2, 2026: a blocked run fails before any job starts. Before you commit the workflow, go to **Settings → Actions → Policies**, create a policy with an active enforcement status that targets `.github/workflows/preview.yaml`, and add a **Restrict events** rule that allows `pull_request_target`. A repository that never turns previews on doesn't have the workflow, so it needs no policy.
 - **Forks:** pull requests from forks get no preview, and the cluster is never called for them.
 - **Approvals:** to have a person approve each preview, add a required reviewer to the `preview` environment under **Settings → Environments**. Leave `preview-cleanup` without one, so closing a pull request never waits for an approval.
 

@@ -93,13 +93,24 @@ describe('Integration tests', () => {
 			// The deploy workflow must live under `.github/workflows/` (plural — GitHub only runs
 			// workflows there; the singular `workflow/` these templates used to ship never triggered).
 			expect(fs.existsSync(path.join(targetDir, '.github', 'workflows', 'deploy.yaml'))).toBe(true);
-			// Deploy and its setup run the harper CLI, never a script copied into the project.
+			// The preview workflow runs on `pull_request_target`, which GitHub fails in a public
+			// repository without a policy allowing it, so it stays out of `.github/workflows/` until
+			// `deploy:setup-previews` copies it in.
+			expect(fs.existsSync(path.join(targetDir, '.github', 'workflows', 'preview.yaml'))).toBe(false);
+			const previews = path.join(targetDir, '.github', 'previews');
+			expect(fs.existsSync(path.join(previews, 'preview.yaml'))).toBe(!BUILD_BEFORE_DEPLOY_TEMPLATES.has(template));
+			expect(fs.existsSync(path.join(previews, 'install-workflow.js'))).toBe(
+				!BUILD_BEFORE_DEPLOY_TEMPLATES.has(template),
+			);
+			// Deploy and its setup run the harper CLI, never a script in `scripts/`.
 			expect(fs.existsSync(path.join(targetDir, 'scripts'))).toBe(false);
 			expect(pkgJson.scripts['deploy:setup-ci']).toBe(
 				`harper deploy setup=true provider=github-actions project=${projectName}`,
 			);
 			expect(pkgJson.scripts['deploy:setup-previews']).toBe(
-				BUILD_BEFORE_DEPLOY_TEMPLATES.has(template) ? undefined : `harper preview setup app=${projectName}`,
+				BUILD_BEFORE_DEPLOY_TEMPLATES.has(template)
+					? undefined
+					: `node .github/previews/install-workflow.js && harper preview setup app=${projectName}`,
 			);
 			// Payload deploys need no clone credential; a private npm registry is set up by hand.
 			expect(pkgJson.scripts['deploy:setup']).toBeUndefined();

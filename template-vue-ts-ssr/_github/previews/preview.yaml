@@ -1,6 +1,7 @@
 # Gives each pull request its own copy of the app on your Harper cluster, and removes it when the
-# pull request closes. Both jobs stay skipped until you turn previews on, once, with
-# `your-package-manager-run-here deploy:setup-previews` (see "Pull request previews" in the README).
+# pull request closes. `your-package-manager-run-here deploy:setup-previews` copies it from
+# `.github/previews/` to `.github/workflows/`, where GitHub runs it, and turns previews on (see "Pull
+# request previews" in the README). Both jobs stay skipped until setup sets HARPER_PREVIEW_TARGET.
 #
 # `pull_request_target` runs this file as it is on the default branch, so a pull request can't change
 # what runs with the preview identity. Keep it that way: never check out or build the pull request
