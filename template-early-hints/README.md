@@ -12,7 +12,7 @@ Here's what you should do next:
 
 ## Installation
 
-To get started, make sure you have [installed Harper](https://docs.harperdb.io/docs/deployments/install-harper):
+To get started, make sure you have [installed Harper](https://docs.harper.fast/learn/getting-started/install-and-connect-harper):
 
 ```sh
 npm install -g harperdb
@@ -40,7 +40,7 @@ TypeScript is supported at runtime in Node.js through [type stripping](https://n
 |                 |                                                                 | `v` = hints version                 |
 | `/site-images/` | Direct REST interface for the SiteImages table                  |                                     |
 
-The Harper REST API gives low level control over your data. For a full description of what the REST API can do and how to use if your can refer to its [documentation](https://docs.harperdb.io/docs/developers/rest).
+The Harper REST API gives low level control over your data. For a full description of what the REST API can do and how to use if your can refer to its [documentation](https://docs.harper.fast/reference/v5/rest/overview).
 This REST interface for the various tables can be used to manually manipulate the data. See the [Data Model](#data-model) section below for details on the structure of each table.
 
 ### Example Request
@@ -88,6 +88,6 @@ npm run deploy
 
 ## Keep Going!
 
-For more information about getting started with Harper and building applications, see our [getting started guide](https://docs.harperdb.io/docs).
+For more information about getting started with Harper and building applications, see our [getting started guide](https://docs.harper.fast/).
 
-For more information on Harper Components, see the [Components documentation](https://docs.harperdb.io/docs/reference/components).
+For more information on Harper Components, see the [Components documentation](https://docs.harper.fast/reference/v5/components/overview).

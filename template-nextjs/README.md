@@ -8,7 +8,7 @@ The starter ships one tiny end-to-end example: a counter stored in a Harper tabl
 
 ## Installation
 
-Make sure you have [installed Harper](https://docs.harperdb.io/docs/deployments/install-harper):
+Make sure you have [installed Harper](https://docs.harper.fast/learn/getting-started/install-and-connect-harper):
 
 ```sh
 npm install -g harper
@@ -100,7 +100,7 @@ The workflow's test job runs `next build`, and the deploy job uploads the projec
 The deploy step's log names the deployment and its `certification`:
 
 - `certified`: the canary loaded the release.
-- `uncertified` or `unavailable`: the release went out without that check, for a reason the [deploy reference](https://docs.harperdb.io/reference/v5/operations-api/operations#certifying-a-release-in-a-canary-worker) lists.
+- `uncertified` or `unavailable`: the release went out without that check, for a reason the [deploy reference](https://docs.harper.fast/reference/v5/operations-api/operations#certifying-a-release-in-a-canary-worker) lists.
 
 ### Going back to an earlier release
 
@@ -150,6 +150,6 @@ Leave out `registry=` and `scope=` for a private package on npmjs.com.
 
 ## Keep Going!
 
-For more on building Harper applications, see the [getting started guide](https://docs.harperdb.io/docs).
+For more on building Harper applications, see the [getting started guide](https://docs.harper.fast/).
 
-For more on Harper Components, see the [Components documentation](https://docs.harperdb.io/docs/reference/components).
+For more on Harper Components, see the [Components documentation](https://docs.harper.fast/reference/v5/components/overview).
