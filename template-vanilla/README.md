@@ -183,7 +183,7 @@ A new project has no preview workflow, because GitHub runs every workflow in `.g
 
    It runs `harper preview setup`. That writes `.github/workflows/preview.yaml` when there is none, and refuses an existing one with a job that runs for forks or checks out the pull request. It creates, on the cluster, a user that can only deploy and drop this app's previews, and trust policies for the workflow's `preview` and `preview-cleanup` environments. It uses the [`gh` CLI](https://cli.github.com), signed in, to look up the repository and to set the `HARPER_PREVIEW_TARGET` repository variable the workflow deploys to.
 3. In a public repository, allow `pull_request_target` for the workflow, as described below.
-4. Commit `.github/workflows/preview.yaml` to `main`. `pull_request_target` runs the workflow as it is on `main`, so previews start once it is there.
+4. Once setup finishes without an error, commit `.github/workflows/preview.yaml` to `main`; before that, its runs fail. `pull_request_target` runs the workflow as it is on `main`, so previews start once it is there. If setup fails, fix what it reports and run it again: it keeps the workflow it wrote and checks it.
 
 To remove it all, previews included, run `harper preview teardown app=your-component-name-here`, then delete `.github/workflows/preview.yaml` from `main`.
 
