@@ -2,15 +2,13 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { afterAll, beforeAll, describe, expect, test, vi } from 'vitest';
-import * as YAML from 'yaml';
 import { scaffoldProject } from '../lib/steps/scaffoldProject.js';
-import { checkPreviewWorkflowFile, checkWorkflowFile } from './harper/workflowChecks.ts';
+import { checkWorkflowFile } from './harper/workflowChecks.ts';
 
 vi.mock('@clack/prompts');
 
 const root = path.resolve(import.meta.dirname, '..');
 const deployWorkflowPath = path.join('_github', 'workflows', 'deploy.yaml');
-const previewWorkflowPath = path.join('_github', 'workflows', 'preview.yaml');
 
 // A Next.js commit has no `.next`, and building on the cluster fails (HarperFast/nextjs#57, #58).
 const templates = fs.readdirSync(root)
@@ -23,44 +21,41 @@ const packageManagers = [['npm', '10.9.0'], ['pnpm', '11.17.0'], ['yarn', '4.9.1
 	'2.1.0',
 ]];
 
-// `harper preview setup`'s defaults, which its trust policies pin.
-const check = (workflow) => checkPreviewWorkflowFile(workflow, 'main', 'preview', 'preview-cleanup');
-const clean = { problems: [], unverified: [], unsafe: [] };
-const previewGate = "vars.HARPER_PREVIEW_TARGET != '' && ";
-
 /**
- * A workflow as a scaffolded project holds it, with LF line endings: a Windows checkout has CRLF.
+ * A file as a scaffolded project holds it, with LF line endings: a Windows checkout has CRLF.
  *
  * @param {string} project - The scaffolded project's directory.
- * @param {string} file - The workflow's file name.
- * @returns {string} - The workflow's contents.
+ * @param {...string} segments - The file's path in the project.
+ * @returns {string} - The file's contents.
  */
-function readWorkflow(project, file) {
-	return fs.readFileSync(path.join(project, '.github', 'workflows', file), 'utf-8').replaceAll('\r\n', '\n');
+function readFile(project, ...segments) {
+	return fs.readFileSync(path.join(project, ...segments), 'utf-8').replaceAll('\r\n', '\n');
+}
+
+function readScripts(project) {
+	return JSON.parse(readFile(project, 'package.json')).scripts;
 }
 
 // Each test writes a whole project to disk, which a Windows runner has stalled for over 5s.
-describe('scaffolded preview workflows', { timeout: 30_000 }, () => {
+describe('pull request previews', { timeout: 30_000 }, () => {
 	/** @type {string} */
 	let tempDir;
-	/** @type {string} */
-	let workflow;
 
 	/**
 	 * @param {string} template - The template name to scaffold.
 	 * @param {string} agent - The package manager to scaffold for.
 	 * @param {string} version - That package manager's version.
+	 * @param {string} [name] - The project's directory name, which is also its component name.
 	 * @returns {string} - The scaffolded project's directory.
 	 */
-	function scaffold(template, agent, version) {
-		const target = path.join(tempDir, `${template}-${agent}`);
+	function scaffold(template, agent, version, name = `${template}-${agent}`) {
+		const target = path.join(tempDir, name);
 		scaffoldProject(target, 'shop', 'shop', template, undefined, agent, version);
 		return target;
 	}
 
 	beforeAll(() => {
 		tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'create-harper-preview-workflow-'));
-		workflow = readWorkflow(scaffold('vanilla', 'npm', '10.9.0'), 'preview.yaml');
 	});
 
 	afterAll(() => {
@@ -73,124 +68,49 @@ describe('scaffolded preview workflows', { timeout: 30_000 }, () => {
 
 	for (const template of previewTemplates) {
 		for (const [agent, version] of packageManagers) {
-			test(`${template} with ${agent} passes the checks harper runs on both workflows`, () => {
+			test(`${template} with ${agent} passes the checks harper runs on the deploy workflow`, () => {
 				const project = scaffold(template, agent, version);
-				const preview = readWorkflow(project, 'preview.yaml');
 
-				expect(check(preview)).toEqual(clean);
-				expect(checkWorkflowFile(readWorkflow(project, 'deploy.yaml'), 'main', 'production')).toEqual({
-					problems: [],
-					unverified: [],
-				});
-				expect(preview).not.toContain('your-');
-				expect(YAML.parse(preview).jobs.deploy.steps[0].with.app).toBe(`${template}-${agent}`);
+				expect(checkWorkflowFile(readFile(project, '.github', 'workflows', 'deploy.yaml'), 'main', 'production'))
+					.toEqual({ problems: [], unverified: [] });
 			});
 		}
 
-		test(`${template} has a script that turns previews on`, () => {
+		// `harper preview setup` writes its own workflow only when the file is missing, and checks one that isn't.
+		test(`${template} has harper write the preview workflow when previews are turned on`, () => {
 			const project = scaffold(template, 'npm', '10.9.0');
-			const pkgJson = JSON.parse(fs.readFileSync(path.join(project, 'package.json'), 'utf-8'));
 
-			expect(pkgJson.scripts['deploy:setup-previews']).toBe(`harper preview setup app=${template}-npm`);
+			expect(readScripts(project)['deploy:setup-previews']).toBe(
+				`harper preview setup app=${template}-npm write_workflow=true`,
+			);
 		});
 	}
 
-	test('gates both jobs on the variable setup sets, which is the only one harper reads as set', () => {
-		expect(workflow.split(previewGate)).toHaveLength(3);
-		expect(check(workflow.replaceAll(previewGate, "vars.OTHER_TARGET != '' && ")).unverified).toEqual([
-			'that job "cleanup" runs when a pull request closes, which is what drops its preview before it expires',
-		]);
-	});
+	// From December 2, 2026, GitHub fails a `pull_request_target` run in a public repository with no
+	// Actions policy that allows the event, before any job's `if:` can skip it.
+	for (const template of templates) {
+		test(`${template} scaffolds no workflow that runs on pull_request_target`, () => {
+			const project = scaffold(template, 'npm', '10.9.0', `${template}-fresh`);
 
-	describe('harper refuses a workflow that gives way', () => {
-		const sameRepository = ' && github.event.pull_request.head.repo.full_name == github.repository';
-
-		test('when a job lets forks in', () => {
-			expect(check(workflow.replaceAll(sameRepository, '')).problems).toEqual([
-				expect.stringContaining('job "deploy" runs for pull requests from forks'),
-				expect.stringContaining('job "cleanup" runs for pull requests from forks'),
-			]);
+			expect(fs.readdirSync(path.join(project, '.github'))).toEqual(['workflows']);
+			expect(fs.readdirSync(path.join(project, '.github', 'workflows'))).toEqual(['deploy.yaml']);
+			expect(readFile(project, '.github', 'workflows', 'deploy.yaml')).not.toContain('pull_request_target');
 		});
-
-		test('when the deploy job checks out the pull request', () => {
-			const checkout = [
-				'      - uses: actions/checkout@v7',
-				'        with:',
-				'          ref: ${{ github.event.pull_request.head.sha }}',
-				'      - name: Deploy the preview',
-			].join('\n');
-
-			expect(check(workflow.replace('      - name: Deploy the preview', checkout)).problems).toEqual([
-				expect.stringContaining("checks out the pull request's head"),
-			]);
-		});
-
-		test('when no job runs in the environment the policy pins', () => {
-			expect(check(workflow.replace('environment: preview\n', 'environment: staging\n')).problems).toEqual([
-				expect.stringContaining('not "preview"'),
-			]);
-		});
-	});
-
-	test('does nothing until setup sets HARPER_PREVIEW_TARGET', () => {
-		for (const job of Object.values(YAML.parse(workflow).jobs)) {
-			expect(job.if.startsWith("vars.HARPER_PREVIEW_TARGET != '' && ")).toBe(true);
-		}
-	});
-
-	test('holds no permission at the top, and gives each job only what the action needs', () => {
-		const { permissions, jobs } = YAML.parse(workflow);
-
-		expect(permissions).toEqual({});
-		for (const job of Object.values(jobs)) {
-			expect(job.permissions).toEqual({ 'id-token': 'write', 'pull-requests': 'write', deployments: 'write' });
-		}
-	});
-
-	test('runs deploy and cleanup in the environments the two policies pin', () => {
-		const { deploy, cleanup } = YAML.parse(workflow).jobs;
-
-		expect(deploy.environment).toBe('preview');
-		expect(cleanup.environment).toBe('preview-cleanup');
-		// A deploy waiting for a reviewer must not hold up the cleanup of a closed pull request.
-		expect(cleanup.concurrency).toBeUndefined();
-	});
-
-	// A step is the only way pull request code could reach the identity token, and these jobs need one.
-	test('each job is the action and nothing else', () => {
-		for (const job of Object.values(YAML.parse(workflow).jobs)) {
-			expect(job.steps).toHaveLength(1);
-			expect(job.steps[0].uses).toBe('HarperFast/deploy-action@45fa59b6157eabb72b7a74922309238671f2a37d');
-			expect(job.steps[0].with).toMatchObject({
-				target: '${{ vars.HARPER_PREVIEW_TARGET }}',
-				preview: true,
-			});
-			// Previews deploy by reference by default; `by_ref: false` would upload the runner's directory.
-			expect(job.steps[0].with.by_ref).toBeUndefined();
-		}
-	});
-
-	test('fetches a private repository with the sealed credential', () => {
-		const { deploy, cleanup } = YAML.parse(workflow).jobs;
-
-		expect(deploy.steps[0].with.credential).toBe('${{ github.event.repository.private }}');
-		expect(cleanup.steps[0].with.credential).toBeUndefined();
-	});
+	}
 
 	test('a project directory with shell syntax previews as a sanitized component name', () => {
 		const target = path.join(tempDir, 'my app; printf X');
 		scaffoldProject(target, 'my app; printf X', 'my-app', 'vanilla', undefined, 'npm', '10.9.0');
-		const pkgJson = JSON.parse(fs.readFileSync(path.join(target, 'package.json'), 'utf-8'));
 
-		expect(readWorkflow(target, 'preview.yaml')).toContain('app: my-app-printf-X\n');
-		expect(pkgJson.scripts['deploy:setup-previews']).toBe('harper preview setup app=my-app-printf-X');
+		expect(readScripts(target)['deploy:setup-previews']).toBe(
+			'harper preview setup app=my-app-printf-X write_workflow=true',
+		);
 	});
 
 	for (const template of templates.filter((name) => name.startsWith('nextjs'))) {
-		test(`${template} ships no preview workflow, since a commit has no .next to serve`, () => {
+		test(`${template} has no previews, since a commit has no .next to serve`, () => {
 			const pkgJson = JSON.parse(fs.readFileSync(path.join(root, `template-${template}`, 'package.json'), 'utf-8'));
 
-			expect(fs.existsSync(path.join(root, `template-${template}`, previewWorkflowPath))).toBe(false);
 			expect(pkgJson.scripts['deploy:setup-previews']).toBeUndefined();
 		});
 	}

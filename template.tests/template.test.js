@@ -93,13 +93,16 @@ describe('Integration tests', () => {
 			// The deploy workflow must live under `.github/workflows/` (plural — GitHub only runs
 			// workflows there; the singular `workflow/` these templates used to ship never triggered).
 			expect(fs.existsSync(path.join(targetDir, '.github', 'workflows', 'deploy.yaml'))).toBe(true);
+			expect(fs.readdirSync(path.join(targetDir, '.github', 'workflows'))).toEqual(['deploy.yaml']);
 			// Deploy and its setup run the harper CLI, never a script copied into the project.
 			expect(fs.existsSync(path.join(targetDir, 'scripts'))).toBe(false);
 			expect(pkgJson.scripts['deploy:setup-ci']).toBe(
 				`harper deploy setup=true provider=github-actions project=${projectName}`,
 			);
 			expect(pkgJson.scripts['deploy:setup-previews']).toBe(
-				BUILD_BEFORE_DEPLOY_TEMPLATES.has(template) ? undefined : `harper preview setup app=${projectName}`,
+				BUILD_BEFORE_DEPLOY_TEMPLATES.has(template)
+					? undefined
+					: `harper preview setup app=${projectName} write_workflow=true`,
 			);
 			// Payload deploys need no clone credential; a private npm registry is set up by hand.
 			expect(pkgJson.scripts['deploy:setup']).toBeUndefined();
