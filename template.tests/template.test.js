@@ -93,8 +93,7 @@ describe('Integration tests', () => {
 			// The deploy workflow must live under `.github/workflows/` (plural — GitHub only runs
 			// workflows there; the singular `workflow/` these templates used to ship never triggered).
 			expect(fs.existsSync(path.join(targetDir, '.github', 'workflows', 'deploy.yaml'))).toBe(true);
-			// The preview workflow runs on `pull_request_target`, which GitHub fails in a public
-			// repository without a policy allowing it, so harper writes it only once previews are on.
+			// Harper writes the preview workflow only once previews are on.
 			expect(fs.readdirSync(path.join(targetDir, '.github', 'workflows'))).toEqual(['deploy.yaml']);
 			// Deploy and its setup run the harper CLI, never a script copied into the project.
 			expect(fs.existsSync(path.join(targetDir, 'scripts'))).toBe(false);

@@ -181,7 +181,7 @@ A new project has no preview workflow, because GitHub runs every workflow in `.g
    your-package-manager-run-here deploy:setup-previews
    ```
 
-   It runs `harper preview setup`. That writes `.github/workflows/preview.yaml` when there is none, and refuses an existing one with a job that runs for forks or checks out the pull request. It creates, on the cluster, a user that can only deploy and drop this app's previews, and trust policies for the workflow's `preview` and `preview-cleanup` environments. With the [`gh` CLI](https://cli.github.com) signed in, it also sets the `HARPER_PREVIEW_TARGET` repository variable the workflow deploys to; otherwise it prints the command to run.
+   It runs `harper preview setup`. That writes `.github/workflows/preview.yaml` when there is none, and refuses an existing one with a job that runs for forks or checks out the pull request. It creates, on the cluster, a user that can only deploy and drop this app's previews, and trust policies for the workflow's `preview` and `preview-cleanup` environments. It uses the [`gh` CLI](https://cli.github.com), signed in, to look up the repository and to set the `HARPER_PREVIEW_TARGET` repository variable the workflow deploys to.
 3. In a public repository, allow `pull_request_target` for the workflow, as described below.
 4. Commit `.github/workflows/preview.yaml` to `main`. `pull_request_target` runs the workflow as it is on `main`, so previews start once it is there.
 
@@ -189,7 +189,7 @@ To remove it all, previews included, run `harper preview teardown app=your-compo
 
 The workflow never checks out or builds a pull request. The cluster fetches the commit itself, then installs and builds it there. So anyone who can push a branch here, a bot included, can run code on your cluster, and Harper doesn't sandbox an app's code. A preview's writes stay in its own database branch, except in the `system` database (users and roles), which can't be branched.
 
-- **Private repositories:** the cluster needs a credential to fetch each commit. Setup offers to seal one, and the workflow it writes uses it.
+- **Private repositories:** the cluster needs a credential to fetch each commit. Setup offers to seal one, and a workflow it writes on that same run passes `credential=true` to `harper preview deploy`. Running setup again seals one but leaves an existing workflow as it is, so add `credential=true` there yourself.
 - **Public repositories:** the workflow runs on `pull_request_target`, which [GitHub's default protection](https://docs.github.com/en/actions/reference/security/securely-using-pull_request_target) blocks in public repositories from December 2, 2026: a blocked run fails before any job starts. Before you commit the workflow, go to **Settings → Actions → Policies**, create a policy with an active enforcement status that targets `.github/workflows/preview.yaml`, and add a **Restrict events** rule that allows `pull_request_target`. A repository that never turns previews on doesn't have the workflow, so it needs no policy.
 - **Forks:** pull requests from forks get no preview, and the cluster is never called for them.
 - **Approvals:** to have a person approve each preview, add a required reviewer to the `preview` environment under **Settings → Environments**. Leave `preview-cleanup` without one, so closing a pull request never waits for an approval.
