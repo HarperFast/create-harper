@@ -185,7 +185,7 @@ A new project has no preview workflow, because GitHub runs every workflow in `.g
 3. In a public repository, allow `pull_request_target` for the workflow, as described below.
 4. Once setup finishes without an error, commit `.github/workflows/preview.yaml` to `main`; before that, its runs fail. `pull_request_target` runs the workflow as it is on `main`, so previews start once it is there. If setup fails, fix what it reports and run it again: it keeps the workflow it wrote and checks it.
 
-To remove it all, previews included, run `harper preview teardown app=your-component-name-here`, then delete `.github/workflows/preview.yaml` from `main`.
+To remove it all, previews included, run `harper preview teardown app=your-component-name-here`, then delete `.github/workflows/preview.yaml` from `main` and the repository variable with `gh variable delete HARPER_PREVIEW_TARGET`. Setup refuses to point a variable left behind at another cluster.
 
 The workflow never checks out or builds a pull request. The cluster fetches the commit itself, then installs and builds it there. So anyone who can push a branch here, a bot included, can run code on your cluster, and Harper doesn't sandbox an app's code. A preview's writes stay in its own database branch, except in the `system` database (users and roles), which can't be branched.
 
