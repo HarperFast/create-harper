@@ -15,7 +15,7 @@
 		"build": "vite build",
 		"deploy": "harper deploy project=your-component-name-here restart=rolling",
 		"deploy:setup-ci": "harper deploy setup=true provider=github-actions project=your-component-name-here",
-		"deploy:setup-previews": "node .github/previews/install-workflow.js && harper preview setup app=your-component-name-here"
+		"deploy:setup-previews": "harper preview setup app=your-component-name-here write_workflow=true"
 	},
 	"dependencies": {
 		"@harperfast/schema-codegen": "^2.0.0",
