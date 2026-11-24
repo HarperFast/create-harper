@@ -32,10 +32,6 @@ function readFile(project, ...segments) {
 	return fs.readFileSync(path.join(project, ...segments), 'utf-8').replaceAll('\r\n', '\n');
 }
 
-/**
- * @param {string} project - The scaffolded project's directory.
- * @returns {Record<string, string>} - Its package.json scripts.
- */
 function readScripts(project) {
 	return JSON.parse(readFile(project, 'package.json')).scripts;
 }
